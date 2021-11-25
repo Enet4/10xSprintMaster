@@ -1,0 +1,5 @@
+/target
+/dist/
+/dist-prod/
+/node_modules/
+/index.css

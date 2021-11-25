@@ -1,0 +1,145 @@
+.board {
+    background-color: #80a0c0;
+    border: 2px solid black;
+    border-radius: 4px;
+    margin-top: 12px;
+    margin-bottom: 10px;
+    padding: 12px;
+    min-height: 200px;
+    width: fit-content;
+}
+
+.board h3 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+}
+
+.board-stage-header {
+    border: 2px solid black;
+    border-radius: 4px 4px 0px 0px;
+    padding: 8px;
+    margin: -4px -12px 0px -4px;
+}
+
+.board-stage {
+    display: inline-table;
+    border: 2px solid #f8f8f8;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    margin: 4px 2px;
+    padding: 4px 12px 8px 4px;
+    width: 160px;
+    background-color: #d4d4e0;
+}
+
+.board-stage-body {
+    height: 260px;
+    overflow-y: auto;
+    padding: 3px;
+}
+
+.board-stage-backlog .board-stage-header {
+    background-color: #cfc0cf;
+}
+
+.board-stage-candidate .board-stage-header {
+    background-color: #f0cfa4;
+}
+
+.board-stage-progress .board-stage-header {
+    background-color: #f0f0a4;
+}
+
+.board-stage-review .board-stage-header {
+    background-color: #a0a0f0;
+}
+
+.board-stage-done .board-stage-header {
+    background-color: #a4f0a4;
+}
+
+.board-task {
+    position: relative;
+    display: block;
+    border: 2px solid black;
+    background-color: #eee;
+    border-radius: 2px;
+    margin: 4px 0px;
+    padding: 6px 22px;
+    transition-property: all;
+    transition-duration: 50ms;
+    transition-timing-function: linear;
+}
+
+.board-task-assigned {
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 1px solid black;
+}
+
+.board-task-assigned-inner {
+    border-radius: 50%;
+    border: 1px solid #555;
+    width: 100%;
+    height: 100%;
+}
+
+.board-task-score {
+    position: absolute;
+    right: 4px;
+    bottom: 8px;
+    font-size: 0.75em;
+    /* display: inline-block; */
+    /* margin-left: 32px; */
+}
+
+.board-task:hover {
+    box-shadow: 5px 5px 6px rgba(0, 0, 0, 0.25);
+    transform: translate(-2px, -1px);
+}
+
+.board-task-chore {
+    background-color: #dc9;
+}
+
+.board-task-chore .board-task-score {
+    display: none;
+}
+
+.board-task-bug {
+    background-color: #eaa;
+}
+
+.board-task-with-bug {
+    padding-left: 1px;
+    color: #a00;
+}
+
+.board-task-progress-outer {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    bottom: 3px;
+    height: 6px;
+    border-radius: 3px;
+    border: 1px solid #555;
+    margin: 0px 2px;
+}
+
+.board-task-progress-inner {
+    height: 100%;
+    border-radius: 3px;
+    background-color: #0d0;
+    transition-property: width;
+    transition-duration: 200ms;
+    transition-timing-function: linear;
+}
+
+.board-task-complete {
+    border-color: #080;
+    box-shadow: 1px 1px 6px rgba(0, 255, 0, 0.5);
+}

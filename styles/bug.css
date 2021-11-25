@@ -1,0 +1,46 @@
+
+.bug-outer {
+    display: inline-block;
+    width: min-content;
+    padding: 2px;
+}
+
+.bug-body {
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 2;
+    background-color: black;
+    width: 10px;
+    height: 12px;
+    border-radius: 45%;
+}
+
+.bug-eye {
+    display: inline-block;
+    border-radius: 50%;
+    width: 2px;
+    height: 3px;
+    margin-left: 1px;
+    margin-right: 2px;
+    margin-bottom: 3px;
+    background-color: white;
+}
+
+.bug-arms {
+    margin-top: -12px;
+    width: 18px;
+    height: 8px;
+    border-radius: 50% 50% 0% 0%;
+    border-top: 2px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+.bug-arms-extra {
+    margin-top: -2px;
+    width: 14px;
+}
+

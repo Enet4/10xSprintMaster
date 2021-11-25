@@ -1,0 +1,286 @@
+@import "board.css";
+@import "bug.css";
+@import "status.css";
+@import "human.css";
+@import "tutorial.css";
+
+* {
+    box-sizing: border-box;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+html {
+    font-size: 1.125rem;
+    padding: 4px;
+    min-width: 800px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button {
+    background-color: #f0f0f0;
+    border: outset 4px;
+}
+
+button:hover {
+    background-color: #ff9;
+}
+
+button:active {
+    border: inset 4px;
+}
+
+.main-menu {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    margin-top: 16px;
+    box-shadow: 0 4px 2px rgba(0, 0, 0, 0.5);
+    min-height: 300px;
+    background-color: #f0f0c0;
+}
+
+.main-menu h1 {
+    font-size: 2.5rem;
+    font-variant: small-caps;
+
+}
+
+.main-menu footer {
+    font-size: 0.75rem;
+    text-align: right;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+.main-menu-back {
+    position: absolute;
+    top: 20%;
+    bottom: 0px;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to bottom, #fff, #999);
+
+}
+
+@keyframes move-bug {
+    
+    from {
+        left: 20%;
+        top: 10%;
+        transform: scale(0.0);
+    }
+
+    14% {
+        left: 20%;
+        top: 10%;
+        transform: scale(0.0);
+    }
+
+    20% {
+        left: 20%;
+        top: 10%;
+        transform: scale(1.0);
+    }
+  
+    40% {
+        left: 20%;
+        top: 92%;
+        transform: rotate(0);
+    }
+
+    45% {
+        transform: rotate(-90deg);
+    }
+
+    60% {
+        left: 85%;
+        top: 92%;
+        transform: rotate(-90deg);
+    }
+
+    65% {
+        transform: rotate(-180deg);
+    }
+
+    80% {
+        left: 85%;
+        top: 10%;
+        transform: scale(1.0) rotate(-180deg);
+    }
+
+    to {
+        left: 80%;
+        top: 10%;
+        transform: scale(0.0) rotate(-180deg);
+    }
+}
+
+/* animate this to move around the screen */
+.main-menu-bug {
+    position: absolute;
+    left: 64px;
+    animation-duration: 72s;
+    animation-name: move-bug;
+    animation-timing-function: ease;
+    animation-iteration-count: infinite;
+}
+
+@keyframes move-bug-arms-1 {
+    
+    from {
+        transform: scaleX(1.) rotate(-25deg);
+    }
+
+    50% {
+        transform: scaleX(1.25);
+    }
+
+    to {
+        transform: scale(1.) rotate(25deg);
+    }
+}
+
+@keyframes move-bug-arms-2 {
+    
+    from {
+        transform: scaleX(1.);
+    }
+
+    15% {
+        transform: scaleX(1.);
+    }
+
+    65% {
+        transform: scaleX(1.25);
+    }
+
+    to {
+        transform: scale(0.8);
+    }
+}
+
+/* animate the bug's arms */
+.main-menu-bug .bug-arms {
+    animation-name: move-bug-arms-1;
+    animation-duration: 250ms;
+    animation-iteration-count: infinite;
+}
+
+.main-menu-bug .bug-arms-extra {
+    animation-name: move-bug-arms-2;
+    animation-duration: 300ms;
+    animation-iteration-count: infinite;
+}
+
+.main-menu-prompt {
+    min-width: 400px;
+}
+
+.main-menu-button {
+    font-size: 1.5em;
+    margin: 1em 0px;
+    padding: 0.5em;
+    width: 100%;
+}
+
+.product-name-input {
+    display: block;
+    width: 300px;
+    font-size: 1.25em;
+    border: 0px;
+    border-bottom: 3px solid #555;
+}
+
+.product-name-input:focus-visible {
+    border-bottom: 3px solid black;
+}
+
+.onboarding {
+    width: 26px;
+    height: 26px;
+}
+
+.human-resources {
+    display: inline-block;
+    border: 4px solid #777;
+    background-color: rgba(255, 255, 255, 0.75);
+    border-radius: 4px;
+    padding: 16px;
+    width: 100%;
+}
+
+.human-resources-header {
+    display: block;
+    margin-left: auto;
+
+    margin-right: auto;
+    margin-bottom: 8px;
+    font-size: 1.2em;
+}
+
+.modal {
+    z-index: 11;
+    width: 660px;
+    max-width: 100%;
+    min-height: 200px;
+    max-height: 100%;
+    border: 4px solid black;
+    background-color: white;
+    box-shadow: 8px 8px 6px rgba(0, 0, 0, 0.25);
+    padding: 32px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.modal h2 {
+    margin: 0px;
+}
+
+.modal h3 {
+    margin: 0px;
+}
+
+.modal button {
+    font-size: 1.25em;
+}
+
+.modal-content {
+    font-size: 1em;
+}
+
+.modal-background {
+    z-index: 10;
+    margin: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+}
+
+.modal .message-meta {
+    border-radius: 2px;
+    border: 2px dashed #ccd;
+    background-color: rgb(192, 240, 255);
+    padding: 8px;
+    margin-bottom: 16px;
+}
+
+modal .message-meta h4 {
+    margin-block-start: 0.125em;
+    margin-block-end: 0.75em;
+}
+
+.modal .message-meta > span, .modal .message-meta > p {
+    font-style: italic;
+}

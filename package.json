@@ -1,0 +1,26 @@
+{
+  "name": "gameoff2021-10xsprintmaster",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build-css --env production && trunk build --release",
+    "build-css": "postcss styles/main.css -o index.css",
+    "watch-css": "postcss -w styles/main.css -o index.css",
+    "start": "npm run build-css && trunk serve -w index.css -w index.html -w src -w Cargo.toml",
+    "test": "cargo test"
+  },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=8"
+  },
+  "author": "Eduardo Pinho",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.3.11",
+    "postcss-cli": "^9.0.1",
+    "postcss-import": "^14.0.2"
+  }
+}
