@@ -194,10 +194,18 @@ impl Component for Human {
 
         let name_style = format!("border-color: {}", self.props.color);
 
-        let outer_classes = if self.props.bring_up {
-            "human-outer human-outer-up"
-        } else {
-            "human-outer"
+        let outer_classes = match (self.props.bring_up, self.props.id == 0) {
+            (false, false) => "human-outer",
+            (true, false) => "human-outer human-outer-up",
+            (false, true) => "human-outer you",
+            (true, true) => "human-outer human-outer-up you",
+        };
+
+        let status = match self.props.status {
+            HumanStatus::Idle => "",
+            HumanStatus::Writing => "✍",
+            HumanStatus::Coding => "⌨",
+            HumanStatus::Reviewing => "👀",
         };
 
         // humans are drop zones: drop a task on it to assign it to this human
@@ -206,7 +214,7 @@ impl Component for Human {
                     ondragenter=dragenter_handler
                     ondragover=dragover_handler
                     ondrop=drop_handler>
-                <div class=classes!("human-activity", status_class) />
+                <div class=classes!("human-activity", status_class)>{status}</div>
                 <div class="human-head">
                     <div class="human-eye">
                       <div class="human-eye-pupil" />

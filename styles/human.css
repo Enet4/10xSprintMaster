@@ -7,7 +7,7 @@
     text-align: center;
     margin: 8px;
     transition-property: transform;
-    transition-duration: 400ms;
+    transition-duration: 440ms;
     transition-timing-function: cubic-bezier(0.96, 0.04, 0.795, 0.035);
 }
 
@@ -16,9 +16,11 @@
 }
 
 .human-activity {
-    width: 42px;
-    height: 42px;
+    height: 45px;
     padding: 4px;
+    font-size: 1.2rem;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .human-head {
@@ -33,12 +35,16 @@
 
 .human-eye {
     display: inline-block;
-    border-radius: 25%;
+    border-radius: 50%;
     border: 2px solid black;
     width: 10px;
     height: 12px;
     margin: 2px;
     background-color: white;
+}
+
+.you .human-eye {
+    border-radius: 25%;
 }
 
 .human-eye-pupil {
