@@ -32,15 +32,136 @@
     height: 8px;
     border-radius: 50% 50% 0% 0%;
     border-top: 2px solid black;
-    border-left: 2px solid black;
-    border-right: 2px solid black;
     margin-left: auto;
     margin-right: auto;
 }
 
 
 .bug-arms-extra {
-    margin-top: -2px;
+    margin-top: -4px;
     width: 14px;
 }
 
+.bug-arms-extra-more {
+    margin-top: -4px;
+    border-left: none;
+    border-right: none;
+    width: 16px;
+}
+
+
+@keyframes move-bug {
+    
+    from {
+        left: 20%;
+        top: 10%;
+        transform: scale(0.0);
+    }
+
+    14% {
+        left: 20%;
+        top: 10%;
+        transform: scale(0.0);
+    }
+
+    20% {
+        left: 20%;
+        top: 10%;
+        transform: scale(1.0);
+    }
+  
+    40% {
+        left: 20%;
+        top: 92%;
+        transform: rotate(0);
+    }
+
+    45% {
+        transform: rotate(-90deg);
+    }
+
+    60% {
+        left: 85%;
+        top: 92%;
+        transform: rotate(-90deg);
+    }
+
+    65% {
+        transform: rotate(-180deg);
+    }
+
+    80% {
+        left: 85%;
+        top: 10%;
+        transform: scale(1.0) rotate(-180deg);
+    }
+
+    to {
+        left: 80%;
+        top: 10%;
+        transform: scale(0.0) rotate(-180deg);
+    }
+}
+
+/* animate this to move around the screen */
+.main-menu-bug {
+    position: absolute;
+    left: 64px;
+    animation-duration: 72s;
+    animation-name: move-bug;
+    animation-timing-function: ease;
+    animation-iteration-count: infinite;
+}
+
+@keyframes move-bug-arms-1 {
+    
+    from {
+        transform: scaleX(1.) rotate(-25deg);
+    }
+
+    50% {
+        transform: scaleX(1.25);
+    }
+
+    to {
+        transform: scale(1.) rotate(25deg);
+    }
+}
+
+@keyframes move-bug-arms-2 {
+    
+    from {
+        transform: scaleX(1.);
+    }
+
+    15% {
+        transform: scaleX(1.);
+    }
+
+    65% {
+        transform: scaleX(1.25);
+    }
+
+    to {
+        transform: scale(0.8);
+    }
+}
+
+/* animate the bug's arms */
+.main-menu-bug .bug-arms {
+    animation-name: move-bug-arms-1;
+    animation-duration: 250ms;
+    animation-iteration-count: infinite;
+}
+
+.main-menu-bug .bug-arms-extra {
+    animation-name: move-bug-arms-2;
+    animation-duration: 250ms;
+    animation-iteration-count: infinite;
+}
+
+.main-menu-bug .bug-arms-extra-more {
+    animation-name: move-bug-arms-1;
+    animation-duration: 280ms;
+    animation-iteration-count: infinite;
+}
