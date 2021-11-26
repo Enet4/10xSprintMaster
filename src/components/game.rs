@@ -421,7 +421,7 @@ impl Component for Game {
         let month = self.state.month;
         let time = self.state.time_in_month;
 
-        let hr_desc = match self.state.humans.len() {
+        let hr_desc = match self.state.humans.iter().filter(|h| !h.quit).count() {
             0 => format!("no humans (WAT)"),
             1 => format!("1 lead"),
             2 => format!("1 lead + 1 developer"),
