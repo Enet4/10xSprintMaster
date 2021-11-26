@@ -122,7 +122,7 @@ fn end_of_month(report: &MonthlyReport) -> Html {
     };
 
     html! {
-        <ul>
+        <ul class="month-report">
             <li><strong>{"Score gained: "}</strong>{report.score}</li>
             <li><strong>{"Total score: "}</strong>{report.total_score}</li>
             <li><strong>{"Tasks done: "}</strong>{report.tasks_done}</li>
@@ -307,7 +307,7 @@ fn tutorial(phase: u32) -> Html {
             <>
                 <p>
                     {"I don't have much time left in the team. "}
-                    {"Just a few pro tips before I go:"}
+                    {"Just a few tips before I go:"}
                     <ul>
                         <li>
                             {"You can't work on task specification or task ingestion while also coding or reviewing. "}
