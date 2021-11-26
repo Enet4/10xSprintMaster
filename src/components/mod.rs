@@ -27,8 +27,9 @@ pub fn bug() -> Html {
                 <div class="bug-eye" />
                 <div class="bug-eye" />
             </div>
-            <div class="bug-arms"></div>
-            <div class="bug-arms bug-arms-extra"></div>
+            <div class="bug-arms"/>
+            <div class="bug-arms bug-arms-extra-more"/>
+            <div class="bug-arms bug-arms-extra"/>
         </div>
     }
 }
