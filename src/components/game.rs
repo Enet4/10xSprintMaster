@@ -173,6 +173,12 @@ impl Component for Game {
                 match self.state.apply_event(event, &mut self.reactor) {
                     EventOutcome::Nothing => updated,
                     EventOutcome::Update => true,
+                    EventOutcome::Alert(msg) => {
+                        // TODO show alert
+
+                        gloo_console::warn!("alert:", msg);
+                        true
+                    }
                     EventOutcome::OpenMessage(msg) => {
                         // apply modal
                         self.modal = Some(msg);
@@ -388,33 +394,29 @@ impl Component for Game {
         let state = &self.state;
 
         let backlog_tasks = state
-            .tasks
+            .tasks_backlog
             .iter()
-            .filter(|t| t.visible && t.stage == StageId::Backlog)
             .map(|t| self.render_task(t))
             .collect::<Vec<_>>();
         let candidate_tasks = state
-            .tasks
+            .tasks_candidate
             .iter()
-            .filter(|t| t.visible && t.stage == StageId::Candidate)
             .map(|t| self.render_task(t))
             .collect::<Vec<_>>();
         let progress_tasks = state
-            .tasks
+            .tasks_progress
             .iter()
-            .filter(|t| t.visible && t.stage == StageId::Progress)
             .map(|t| self.render_task(t))
             .collect::<Vec<_>>();
         let review_tasks = state
-            .tasks
+            .tasks_review
             .iter()
-            .filter(|t| t.visible && t.stage == StageId::Review)
             .map(|t| self.render_task(t))
             .collect::<Vec<_>>();
         let done_tasks = state
-            .tasks
+            .tasks_done
             .iter()
-            .filter(|t| t.visible && t.stage == StageId::Done)
+            .filter(|t| t.visible)
             .map(|t| self.render_task(t))
             .collect::<Vec<_>>();
 
@@ -473,8 +475,8 @@ impl Component for Game {
                     <button class=class_normal onclick=normal_speed_handler>{"▶"}</button>
                     <button class=class_fast onclick=fast_speed_handler>{"▶▶"}</button>
                     <button class=class_faster onclick=faster_speed_handler>{"▶▶▶"}</button>
-                    <Clock time=time />
                     <div class="status-score">{self.state.total_score / 1_000}</div>
+                    <Clock time=time />
                 </div>
                 <Board product_name=self.state.product_name.clone()>
                     <Stage id=StageId::Backlog description="Backlog">

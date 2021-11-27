@@ -143,3 +143,79 @@
     border-color: #080;
     box-shadow: 1px 1px 6px rgba(0, 255, 0, 0.5);
 }
+
+/* Tutorial-related stuff */
+
+.onboarding-wrapper {
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+}
+
+.board-stage-tutorial {
+    border-bottom: none;
+}
+
+.board-stage-tutorial .board-stage-body {
+    max-height: 120px;
+    border-bottom: none;
+}
+
+@keyframes drag-to-next {
+    0% {
+        transform: translateX(0px);
+    }
+    50% {
+        transform: translateX(175px);
+    }
+    100% {
+        transform: translateX(175px);
+    }
+}
+
+.board-task-tutorial-4 {
+    position: absolute;
+    left: 9px;
+    top: 47px;
+    width: 120px;
+    box-shadow: 5px 5px 6px rgba(0, 0, 0, 0.25);
+    transform: translate(-2px, -1px);
+    animation: drag-to-next 2s normal ease-in infinite;
+}
+
+.tutorial-drag {
+    position: absolute;
+    left: 20px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 15px;
+    height: 15px;
+    margin: auto;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+@keyframes drag-to-human {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(64px);
+    }
+    100% {
+        transform: translateY(64px);
+    }
+}
+
+.board-task-tutorial-5 {
+    position: absolute;
+    z-index: 90;
+    left: 6px;
+    top: 0px;
+    width: 120px;
+    box-shadow: 5px 5px 6px rgba(0, 0, 0, 0.25);
+    transform: translate(-2px, -1px);
+    animation: drag-to-human 2s normal ease-in infinite;
+}

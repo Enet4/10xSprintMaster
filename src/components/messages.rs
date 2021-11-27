@@ -123,11 +123,11 @@ fn end_of_month(report: &MonthlyReport) -> Html {
 
     html! {
         <ul class="month-report">
-            <li><strong>{"Score gained: "}</strong>{report.score}</li>
-            <li><strong>{"Total score: "}</strong>{report.total_score}</li>
-            <li><strong>{"Tasks done: "}</strong>{report.tasks_done}</li>
-            <li><strong>{"Bugs fixed: "}</strong>{report.bugs_fixed}</li>
-            <li><strong>{"Technical debt: "}</strong>{complexity}</li>
+            <li><strong>{"Score gained: "}</strong><span>{report.score}</span></li>
+            <li><strong>{"Total score: "}</strong><span>{report.total_score}</span></li>
+            <li><strong>{"Tasks done: "}</strong><span>{report.tasks_done}</span></li>
+            <li><strong>{"Bugs fixed: "}</strong><span>{report.bugs_fixed}</span></li>
+            <li><strong>{"Technical debt: "}</strong><span>{complexity}</span></li>
         </ul>
     }
 }
@@ -182,9 +182,24 @@ fn tutorial(phase: u32) -> Html {
                 </p>
                 <p>
                     {"I'll let you take care of this. To prepare the task, "}
-                    {"move it by dragging and dropping onto the next column, Spring candidate."}
+                    {"move it by dragging and dropping onto the next column, Sprint candidate."}
                 </p>
-                // TODO show animation of task being moved between columns
+                <div class="onboarding-wrapper">
+                    <div class="board-stage board-stage-tutorial board-stage-backlog">
+                        <div class="board-stage-header">{"Backlog"}</div>
+                        <div class="board-stage-body">
+                        </div>
+                    </div>
+                    <div class="board-stage board-stage-tutorial board-stage-candidate">
+                        <div class="board-stage-header">{"Sprint Candidate"}</div>
+                        <div class="board-stage-body"/>
+                    </div>
+                    <div class="board-task board-task-tutorial-4">
+                        {"T351"}
+                        <span class="board-task-score">{"+5"}</span>
+                        <div class="tutorial-drag"></div>
+                    </div>
+                </div>
             </>
         },
         5 => html! {
@@ -200,6 +215,27 @@ fn tutorial(phase: u32) -> Html {
                     {"Assign this task to yourself by dragging and dropping onto your avatar. "}
                     {"Then, you will be able to move it to the next stage, In progress."}
                 </p>
+                <div class="onboarding-wrapper">
+                    <div class="board-task board-task-tutorial-5">
+                        {"T351"}
+                        <span class="board-task-score">{"+5"}</span>
+                        <div class="tutorial-drag"></div>
+                    </div>
+                    <div class="human-outer you">
+                        <div class="human-activity"/>
+                            <div class="human-head">
+                                <div class="human-eye">
+                                    <div class="human-eye-pupil" />
+                                </div>
+                                <div class="human-eye">
+                                    <div class="human-eye-pupil" />
+                                </div>
+                            </div>
+                            <div class="human-body"></div>
+                        <div class="human-name">{"You"}</div>
+                    </div>
+
+                </div>
             </>
         },
         6 => html! {
@@ -212,7 +248,7 @@ fn tutorial(phase: u32) -> Html {
                 </p>
                 <p>
                     {"Move the task to the next stage, Under review, "}
-                    {"and let is stay there for a while. "}
+                    {"and let it stay there for a while. "}
                 </p>
                 <div class="message-meta">
                   <h4>{"Meta tip:"}</h4>

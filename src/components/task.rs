@@ -5,11 +5,7 @@ use rand_distr::{Distribution, Standard};
 use serde::{Deserialize, Serialize};
 use yew::{agent::Dispatcher, prelude::*};
 
-use crate::{
-    components::{bug, progress_bar},
-    data_transfer::{payload::TaskTransfer, DataTransfer, DragEffect},
-    event_bus::{EventBus, EventBusRequest},
-};
+use crate::{components::{bug, progress_bar}, data_transfer::{payload::TaskTransfer, DataTransfer, DragEffect}, event_bus::{EventBus, EventBusRequest}, state::Timestamp};
 
 use super::stage::StageId;
 
@@ -18,6 +14,8 @@ use super::stage::StageId;
 pub struct GameTask {
     /// the unique task ID
     pub id: u32,
+    /// timestamp of the moment that the task was created
+    pub created: Timestamp,
     /// a description of the task
     pub description: String,
     /// the kind of task
@@ -90,6 +88,7 @@ impl GameTask {
     /// Create a new task in the backlog
     pub fn new(
         id: u32,
+        created: Timestamp,
         description: impl Into<String>,
         kind: TaskKind,
         score: i32,
@@ -97,6 +96,7 @@ impl GameTask {
     ) -> Self {
         Self {
             id,
+            created,
             description: description.into(),
             kind,
             stage: StageId::Backlog,
@@ -328,7 +328,6 @@ impl Component for Task {
             // set data transfer item
             // (so that drops zone know what task was dropped)
             let data_transfer = DataTransfer::from_event(&ev);
-            gloo_console::debug!("Moving task", task_id);
 
             let content = TaskTransfer {
                 id: task_id,

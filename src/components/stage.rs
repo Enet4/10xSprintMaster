@@ -132,7 +132,6 @@ impl Component for Stage {
             Msg::TaskOver
         });
         let drop_handler = self.link.callback(move |ev: DragEvent| {
-            gloo_console::debug!("DROP", &ev);
             {
                 let ev: &Event = ev.as_ref();
                 ev.prevent_default();

@@ -251,9 +251,20 @@ impl EventReactor {
         you_experience: u32,
         bugs: u32,
         task_ingest_rate: u32,
+        tasks_in_backlog: usize,
     ) -> Option<GameTaskBuilder> {
+
         let det = 4_400 + task_ingest_rate;
         let num = task_ingest_rate + you_experience;
+
+        // inflate ingestion chance
+        let num = match tasks_in_backlog {
+            0..=1 => num * 2,
+            8..=12 => num / 2,
+            13..=20 => num / 4,
+            21..=29 => num / 8,
+            _ => return None,
+        };
 
         if self.rng.gen_ratio(num.min(det) as u32, det) {
             let mut kind: TaskKind = self.rng.gen();

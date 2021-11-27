@@ -7,7 +7,17 @@ use serde::{Deserialize, Serialize};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 use yew::web_sys;
 
-use crate::{components::{human::{GameHuman, HumanStatus}, messages::Message, stage::StageId, task::{GameTask, GameTaskBuilder, TaskKind}}, data_transfer::payload::TaskTransfer, event_bus::EventBusRequest, services::{EventReactor, GameEvent}};
+use crate::{
+    components::{
+        human::{GameHuman, HumanStatus},
+        messages::Message,
+        stage::StageId,
+        task::{GameTask, GameTaskBuilder, TaskKind},
+    },
+    data_transfer::payload::TaskTransfer,
+    event_bus::EventBusRequest,
+    services::{EventReactor, GameEvent},
+};
 
 /// The number of ticks events in a full game month.
 pub const TICKS_PER_MONTH: u32 = 1_000;
@@ -37,6 +47,9 @@ pub struct WorldState {
     pub time: Timestamp,
     /// the number of ticks which have passed since the beginning of the current month
     pub time_in_month: u32,
+
+    /// the ID of the next task to create
+    pub next_task_id: u32,
 
     /// the player's current score in milliparts of a unit
     /// (all scores presented in tasks are in units,
@@ -68,8 +81,20 @@ pub struct WorldState {
     /// the rate at which You can devise new tasks
     pub task_ingest_rate: u32,
 
-    /// A list of all tasks
-    pub tasks: Vec<GameTask>,
+    /// the list of tasks in backlog
+    pub tasks_backlog: Vec<GameTask>,
+
+    /// the list of tasks in sprint candidate
+    pub tasks_candidate: Vec<GameTask>,
+
+    /// the list of tasks in progress
+    pub tasks_progress: Vec<GameTask>,
+
+    /// the list of tasks under review
+    pub tasks_review: Vec<GameTask>,
+
+    /// the list of tasks done
+    pub tasks_done: Vec<GameTask>,
 
     /// A list of all human resources
     pub humans: Vec<GameHuman>,
@@ -93,6 +118,10 @@ pub enum EventOutcome {
     OpenMessage(Message),
 
     EndOfMonth(MonthlyReport),
+
+    /// Alert the user with this message,
+    /// likely because the requested operation is invalid.
+    Alert(&'static str),
 }
 
 #[derive(Debug)]
@@ -119,6 +148,7 @@ impl WorldState {
             month: 0,
             time: 0,
             time_in_month: 0,
+            next_task_id: 351,
             total_score: 0,
             score_in_month: 0,
             bugs: 0,
@@ -126,7 +156,11 @@ impl WorldState {
             bugs_fixed_in_total: 0,
             complexity: 10,
             score_linger_rate: 0,
-            tasks: vec![],
+            tasks_backlog: vec![],
+            tasks_candidate: vec![],
+            tasks_progress: vec![],
+            tasks_review: vec![],
+            tasks_done: vec![],
             humans: vec![GameHuman::new(0, "You", "#fff", 50)],
             // do not ingest tasks during tutorial
             task_ingest_rate: if tutorial { 0 } else { 10 },
@@ -175,36 +209,37 @@ impl WorldState {
 
     /// Merge the given task upstream,
     /// applying changes to state as necessary.
-    pub fn merge_task(&mut self, task_id: u32) {
+    pub fn merge_task(&mut self, task_transfer: &TaskTransfer) {
         let mut task = self
-            .tasks
-            .binary_search_by_key(&task_id, |t| t.id)
-            .ok()
-            .map(|i| &mut self.tasks[i])
-            .unwrap_throw();
+            .find_task_by_transfer_mut(&task_transfer)
+            .expect_throw("could not find task to merge");
 
         // unassign it from the human
         task.assigned = None;
 
-        // add score
+        // get task properties for calculations
+        let kind = task.kind;
+        let bugs = task.bugs;
+        let difficulty = task.difficulty;
         let task_score = task.score * 1_000;
+
+        // add score
         self.total_score = ((self.total_score as i32).saturating_add(task_score).max(0)) as u32;
         self.score_in_month += task_score;
 
         // add bugs
-        self.bugs += task.bugs;
+        self.bugs += bugs;
 
         // add complexity
-        // TODO refine
-        match task.kind {
+        match kind {
             TaskKind::Bug => {
-                self.complexity += task.difficulty / 5;
+                self.complexity += difficulty / 5;
             }
             TaskKind::Normal => {
-                self.complexity += 1 + task.difficulty / 4;
+                self.complexity += 1 + difficulty / 4;
             }
             TaskKind::Chore => {
-                self.complexity -= 1 + task.difficulty / 5;
+                self.complexity = self.complexity.saturating_sub(1 + difficulty / 4);
             }
         }
 
@@ -248,7 +283,7 @@ impl WorldState {
         // handle all state change requests here
         // (better move specific state operations to state module though)
         match event {
-            EventBusRequest::MoveTask { task, to } => self.move_task(task, to),
+            EventBusRequest::MoveTask { task, to } => self.handle_move_task(task, to),
             EventBusRequest::AssignTask { task, human_id } => self.assign_task(task, human_id),
             EventBusRequest::Tick => self.tick(reactor),
             EventBusRequest::AdvanceTutorial => self.advance_tutorial(),
@@ -261,33 +296,91 @@ impl WorldState {
         }
     }
 
-    fn move_task(&mut self, task: TaskTransfer, to: StageId) -> EventOutcome {
-        let game_task = self
-            .tasks
-            .iter_mut()
-            .find(|t| t.id == task.id)
+    fn find_task_by_transfer(&self, transfer: &TaskTransfer) -> Option<&GameTask> {
+        let tasks = match transfer.from {
+            StageId::Backlog => &self.tasks_backlog,
+            StageId::Candidate => &self.tasks_candidate,
+            StageId::Progress => &self.tasks_progress,
+            StageId::Review => &self.tasks_review,
+            StageId::Done => &self.tasks_done,
+        };
+
+        tasks.iter().find(|t| t.id == transfer.id)
+    }
+
+    fn find_task_by_transfer_mut(&mut self, transfer: &TaskTransfer) -> Option<&mut GameTask> {
+        let tasks = match transfer.from {
+            StageId::Backlog => &mut self.tasks_backlog,
+            StageId::Candidate => &mut self.tasks_candidate,
+            StageId::Progress => &mut self.tasks_progress,
+            StageId::Review => &mut self.tasks_review,
+            StageId::Done => &mut self.tasks_done,
+        };
+
+        tasks.iter_mut().find(|t| t.id == transfer.id)
+    }
+
+    fn move_task(&mut self, task: &TaskTransfer, to: StageId) {
+        let task_list = match task.from {
+            StageId::Backlog => &mut self.tasks_backlog,
+            StageId::Candidate => &mut self.tasks_candidate,
+            StageId::Progress => &mut self.tasks_progress,
+            StageId::Review => &mut self.tasks_review,
+            StageId::Done => &mut self.tasks_done,
+        };
+
+        let index = task_list
+            .iter()
+            .position(|t| t.id == task.id)
             .unwrap_throw();
+
+        // remove it from old list
+        let mut task = task_list.remove(index);
+        task.stage = to;
+
+        // place it on new list
+        let new_task_list = match to {
+            StageId::Backlog => &mut self.tasks_backlog,
+            StageId::Candidate => &mut self.tasks_candidate,
+            StageId::Progress => &mut self.tasks_progress,
+            StageId::Review => &mut self.tasks_review,
+            StageId::Done => &mut self.tasks_done,
+        };
+
+        new_task_list.push(task);
+    }
+
+    fn handle_move_task(&mut self, mut task: TaskTransfer, to: StageId) -> EventOutcome {
+        let game_task = self.find_task_by_transfer_mut(&task).unwrap_throw();
+
         match (game_task.stage, to) {
             // unconditional:
             // from backlog to candidate
             (StageId::Backlog, StageId::Candidate) => {
-                game_task.stage = to;
+                self.move_task(&task, to);
                 EventOutcome::Update
             }
-            // from in progress to candidate
-            (StageId::Progress, StageId::Candidate) => EventOutcome::Update,
+            // from in progress to candidate,
+            // dev progress is retained
+            (StageId::Progress, StageId::Candidate) => {
+                self.move_task(&task, to);
+                EventOutcome::Update
+            }
             // from under review to in progress
             (StageId::Review, StageId::Progress) => {
-                game_task.stage = to;
                 if game_task.bugs_found > 0 {
                     game_task.progress = 0.66666;
                 }
+                self.move_task(&task, to);
+
                 EventOutcome::Update
             }
             // from under review to done
             (StageId::Review, StageId::Done) => {
-                game_task.stage = to;
-                self.merge_task(task.id);
+                gloo_console::debug!("review -> done");
+                self.move_task(&task, to);
+                task.from = StageId::Done;
+                self.merge_task(&task);
 
                 // tutorial step
                 if let Some(6 | 7 | 8) = self.tutorial {
@@ -303,9 +396,9 @@ impl WorldState {
             (StageId::Candidate, StageId::Progress)
                 if game_task.is_specified() && game_task.assigned.is_some() =>
             {
-                game_task.stage = to;
                 // progress now means development progress
                 game_task.progress = 0.;
+                self.move_task(&task, to);
 
                 EventOutcome::Update
             }
@@ -313,7 +406,7 @@ impl WorldState {
             // from in progress to under review
             (StageId::Progress, StageId::Review) => {
                 if game_task.is_developed() {
-                    game_task.stage = to;
+                    self.move_task(&task, to);
 
                     // tutorial step 7
                     if self.tutorial == Some(7) {
@@ -329,8 +422,9 @@ impl WorldState {
             // from in progress to done
             (StageId::Progress, StageId::Done) => {
                 if game_task.is_developed() {
-                    game_task.stage = to;
-                    self.merge_task(task.id);
+                    self.move_task(&task, to);
+                    task.from = StageId::Done;
+                    self.merge_task(&task);
 
                     // tutorial step
                     if let Some(6 | 7 | 8) = self.tutorial {
@@ -346,7 +440,7 @@ impl WorldState {
             // only if not yet specified:
             // from candidate to backlog
             (StageId::Candidate, StageId::Backlog) if !game_task.is_specified() => {
-                game_task.stage = to;
+                self.move_task(&task, to);
                 EventOutcome::Update
             }
             (_, _) => {
@@ -357,39 +451,17 @@ impl WorldState {
     }
 
     fn assign_task(&mut self, task: TaskTransfer, human_id: u32) -> EventOutcome {
-        let task = self
-            .tasks
-            .binary_search_by_key(&task.id, |t| t.id)
-            .ok()
-            .unwrap_throw();
-        let human = self
-            .humans
-            .binary_search_by_key(&human_id, |h| h.id)
-            .ok()
-            .unwrap_throw();
-
-        let task = &mut self.tasks[task];
+        let task = self.find_task_by_transfer_mut(&task).unwrap_throw();
 
         if let Some(assigned_human) = task.assigned {
             if assigned_human == human_id {
                 // already assigned to this human, do nothing
                 return EventOutcome::Nothing;
             }
-
-            // unassign at the other human
-            let other_human = self
-                .humans
-                .binary_search_by_key(&assigned_human, |h| h.id)
-                .ok()
-                .unwrap_throw();
-            self.humans[other_human].assigned_task = None;
         }
 
         // assign at this task
         task.assigned = Some(human_id);
-
-        // assign at this human
-        self.humans[human].assigned_task = Some(task.id);
 
         EventOutcome::Update
     }
@@ -402,106 +474,90 @@ impl WorldState {
         let mut worked = HashSet::new();
 
         // apply human work (development)
-        for task in &mut self.tasks {
-            match task.stage {
-                StageId::Progress => {
-                    if task.is_developed() {
-                        continue;
-                    }
+        for task in &mut self.tasks_progress {
+            if task.is_developed() {
+                continue;
+            }
 
-                    if let Some(human_id) = task.assigned {
-                        if worked.contains(&human_id) {
-                            // this human already worked
-                            continue;
-                        }
-
-                        let human = self.humans.get_mut(human_id as usize).unwrap_throw();
-
-                        // do progress on task
-                        let added_progress = (1 + human.experience) as f64
-                            / (task.difficulty * self.complexity * 25) as f64;
-                        let complete = task.add_progress(added_progress);
-                        human.status = HumanStatus::Coding;
-
-                        // as this human worked on the task,
-                        // they cannot work on other things
-                        worked.insert(human_id);
-
-                        // roll for adding a bug
-                        if reactor.human_introduced_bug(human, task, self.complexity) {
-                            task.bugs += 1;
-
-                            // !!! remove in prod
-                            gloo_console::debug!("Bug introduced in", format!("T{}", task.id));
-                        }
-
-                        if complete {
-                            // record developed_by
-                            task.developed_by = Some(human.id);
-                            // record bugs fixed
-                            self.bugs_fixed_in_month += task.bugs_found;
-                            // clear bugs found
-                            task.bugs -= task.bugs_found;
-                            task.bugs_found = 0;
-
-                            // add experience to human
-                            human.experience = (human.experience + task.difficulty / 4).min(128);
-
-                            if self.tutorial == Some(5) {
-                                // ensure bug in task,
-                                task.bugs = task.bugs.max(1);
-                                // increase experience of You
-                                // (to make bug a bit easier to find)
-                                self.humans[0].experience += 2;
-                                // advance tutorial
-                                return self.advance_tutorial();
-                            }
-                        }
-                    }
+            if let Some(human_id) = task.assigned {
+                if worked.contains(&human_id) {
+                    // this human already worked
+                    continue;
                 }
-                StageId::Review => {}
-                _ => {
-                    // do nothing
+
+                let human = self.humans.get_mut(human_id as usize).unwrap_throw();
+
+                // do progress on task
+                let added_progress =
+                    (1 + human.experience) as f64 / (task.difficulty * self.complexity * 32) as f64;
+                let complete = task.add_progress(added_progress);
+                human.status = HumanStatus::Coding;
+
+                // as this human worked on the task,
+                // they cannot work on other things
+                worked.insert(human_id);
+
+                // roll for adding a bug
+                if reactor.human_introduced_bug(human, task, self.complexity) {
+                    task.bugs += 1;
+
+                    // !!! remove in prod
+                    gloo_console::debug!("Bug introduced in", format!("T{}", task.id));
+                }
+
+                if complete {
+                    // record developed_by
+                    task.developed_by = Some(human.id);
+                    // record bugs fixed
+                    self.bugs_fixed_in_month += task.bugs_found;
+                    // clear bugs found
+                    task.bugs -= task.bugs_found;
+                    task.bugs_found = 0;
+
+                    // add experience to human
+                    human.experience = (human.experience + task.difficulty / 4).min(128);
+
+                    if self.tutorial == Some(5) {
+                        // ensure bug in task,
+                        task.bugs = task.bugs.max(1);
+                        // increase experience of You
+                        // (to make bug a bit easier to find)
+                        self.humans[0].experience += 2;
+                        // advance tutorial
+                        return self.advance_tutorial();
+                    }
                 }
             }
         }
 
         // traverse the tasks again for specification
-        for task in &mut self.tasks {
+        for task in &mut self.tasks_candidate {
             // if You already worked,
             // then you cannot work on task specification
             if worked.contains(&0) {
                 break;
             }
-            match task.stage {
-                // work on specification
-                StageId::Candidate => {
-                    if task.is_specified() {
-                        continue;
-                    }
-                    let you = self.humans.get_mut(0).unwrap_throw();
+            // work on specification
+            if task.is_specified() {
+                continue;
+            }
+            let you = self.humans.get_mut(0).unwrap_throw();
 
-                    // do writing progress on task
-                    let added_progress =
-                        (1 + you.experience) as f64 / (task.difficulty * 100) as f64;
-                    let complete = task.add_progress(added_progress);
-                    you.status = HumanStatus::Writing;
+            // do writing progress on task
+            let added_progress = (1 + you.experience) as f64 / (task.difficulty * 128) as f64;
+            let complete = task.add_progress(added_progress);
+            you.status = HumanStatus::Writing;
 
-                    worked.insert(0);
+            worked.insert(0);
 
-                    if complete && (self.tutorial == Some(4) || self.tutorial == Some(10)) {
-                        // advance tutorial
-                        return self.advance_tutorial();
-                    }
-                }
-                _ => {
-                    // do nothing
-                }
+            if complete && (self.tutorial == Some(4) || self.tutorial == Some(10)) {
+                // advance tutorial
+                return self.advance_tutorial();
             }
         }
 
-        // traverse task list again (review)
-        for task in &mut self.tasks {
+        // traverse tasks under review
+        for task in &mut self.tasks_review {
             if task.stage != StageId::Review {
                 continue;
             }
@@ -518,6 +574,7 @@ impl WorldState {
                 human.status = HumanStatus::Reviewing;
                 if reactor.human_detected_bug(human, task, self.complexity) {
                     task.bugs_found += 1;
+                    // !!! remove in prod
                     gloo_console::debug!("Bug found in", format!("T{}", task.id));
 
                     // tutorial step when reviewing the first task
@@ -540,11 +597,12 @@ impl WorldState {
             // based on ingestion rate and experience of You
             let you_experience = self.humans[0].experience;
 
-            // TODO improve task ingestion for low task count
-
-            if let Some(new_task) =
-                reactor.ingest_task(you_experience, self.bugs, self.task_ingest_rate)
-            {
+            if let Some(new_task) = reactor.ingest_task(
+                you_experience,
+                self.bugs,
+                self.task_ingest_rate,
+                self.tasks_backlog.len(),
+            ) {
                 let id = self.add_task(new_task);
                 gloo_console::debug!("Task", id, "ingested");
             }
@@ -655,7 +713,7 @@ impl WorldState {
         self.task_ingest_rate += 2;
 
         // hide tasks done
-        for t in self.tasks.iter_mut().filter(|t| t.stage == StageId::Done) {
+        for t in &mut self.tasks_done {
             t.visible = false;
         }
 
@@ -673,7 +731,6 @@ impl WorldState {
     }
 
     fn start_of_month(&mut self, reactor: &mut EventReactor) -> Option<EventOutcome> {
-
         if self.tutorial.is_some() {
             // do nothing if tutorial is active
             return None;
@@ -685,7 +742,7 @@ impl WorldState {
         // check whether it is time to introduce another human
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
 
-        let expected_humans = 1 + (self.month + 2) / 6;
+        let expected_humans = 1 + (self.month + 3) / 6;
 
         if expected_humans as usize > humans_count {
             // introduce a new human
@@ -717,8 +774,8 @@ impl WorldState {
         }
     }
 
-    pub fn next_task_id(&self) -> u32 {
-        self.tasks.last().map(|t| t.id).unwrap_or(350) + 1
+    fn next_task_id(&self) -> u32 {
+        self.next_task_id
     }
 
     pub fn next_human_id(&self) -> u32 {
@@ -730,26 +787,25 @@ impl WorldState {
             month: self.month,
             total_score: self.total_score / 1000,
             score: self.score_in_month / 1000,
-            tasks_done: self
-                .tasks
-                .iter()
-                .filter(|t| t.visible && t.stage == StageId::Done)
-                .count(),
+            tasks_done: self.tasks_done.iter().filter(|t| t.visible).count(),
             bugs_fixed: self.bugs_fixed_in_month,
             complexity: self.complexity,
         }
     }
 
     fn add_task(&mut self, task: GameTaskBuilder) -> u32 {
-        let id = self.next_task_id();
+        let id = self.next_task_id;
+        self.next_task_id += 1;
+        gloo_console::debug!("New task:", id, "; next task:", self.next_task_id);
+        let created = self.time;
         let GameTaskBuilder {
             description,
             kind,
             score,
             difficulty,
         } = task;
-        let task = GameTask::new(id, description, kind, score, difficulty);
-        self.tasks.push(task);
+        let task = GameTask::new(id, created, description, kind, score, difficulty);
+        self.tasks_backlog.push(task);
         id
     }
 
@@ -792,6 +848,7 @@ fn dummy_state() -> WorldState {
         month: 6,
         time: 6 * TICKS_PER_MONTH + 200,
         time_in_month: 200,
+        next_task_id: 5,
         bugs: 4,
         bugs_fixed_in_month: 0,
         bugs_fixed_in_total: 10,
@@ -800,26 +857,30 @@ fn dummy_state() -> WorldState {
         complexity: 30,
         task_ingest_rate: 20,
         score_linger_rate: 0, // not relevant, will be recalculated
-        tasks: vec![
-            GameTask::new(1, "Test tasks in general", TaskKind::Normal, 6, 20),
-            GameTask::new(2, "Test bugs in general", TaskKind::Bug, 2, 12),
-            GameTask::new(3, "Test chores in general", TaskKind::Chore, 0, 10),
-            GameTask {
-                id: 4,
-                description: "Test a task in progress".to_string(),
-                kind: TaskKind::Normal,
-                stage: StageId::Progress,
-                assigned: None,
-                developed_by: None,
-                score: 7,
-                difficulty: 10,
-                progress: 0.25,
-                specified: true,
-                bugs: 1,
-                bugs_found: 0,
-                visible: true,
-            },
+        tasks_backlog: vec![
+            GameTask::new(1, 6_000, "Test tasks in general", TaskKind::Normal, 6, 20),
+            GameTask::new(2, 6_000, "Test bugs in general", TaskKind::Bug, 2, 12),
+            GameTask::new(3, 6_000, "Test chores in general", TaskKind::Chore, 0, 10),
         ],
+        tasks_candidate: vec![],
+        tasks_progress: vec![GameTask {
+            id: 4,
+            created: 5_200,
+            description: "Test a task in progress".to_string(),
+            kind: TaskKind::Normal,
+            stage: StageId::Progress,
+            assigned: None,
+            developed_by: None,
+            score: 7,
+            difficulty: 10,
+            progress: 0.25,
+            specified: true,
+            bugs: 1,
+            bugs_found: 0,
+            visible: true,
+        }],
+        tasks_review: vec![],
+        tasks_done: vec![],
         humans: vec![
             GameHuman::new(0, "You", "#fff", 100),
             GameHuman {
@@ -829,7 +890,6 @@ fn dummy_state() -> WorldState {
                 status: crate::components::human::HumanStatus::Idle,
                 experience: 100,
                 progress: 0.,
-                assigned_task: None,
                 quit: false,
             },
         ],

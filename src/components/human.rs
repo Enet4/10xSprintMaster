@@ -26,8 +26,6 @@ pub struct GameHuman {
     pub experience: u32,
     /// the progress of the human at doing something
     pub progress: f32,
-    /// reverse reference to the task that the human is assigned to (task ID)
-    pub assigned_task: Option<u32>,
     /// whether the human quit the team and is not coming back
     pub quit: bool,
 }
@@ -47,7 +45,6 @@ impl GameHuman {
             status: HumanStatus::Idle,
             experience: initial_experience,
             progress: 0.,
-            assigned_task: None,
             quit: false,
         }
     }
