@@ -118,6 +118,7 @@ impl Display for GameSpeed {
 /// Game construct that produces events over game time.
 #[derive(Debug)]
 pub struct EventReactor {
+    /// the random number generator
     rng: Pcg32,
 }
 
@@ -178,11 +179,11 @@ impl EventReactor {
         }
 
         for _ in task.bugs_found..task.bugs {
-            let det = 2_000 + project_complexity * task.difficulty * 45;
-            let num = 5 + human.experience / 2;
-            // double the chances if reviewed by someone else
+            let det = 2_000 + project_complexity * task.difficulty * 40;
+            let num = 10 + human.experience / 2;
+            // triple the chances if reviewed by someone else
             let num = if task.developed_by != Some(human.id) {
-                num * 2
+                num * 3
             } else {
                 num
             };
@@ -206,7 +207,7 @@ impl EventReactor {
     /// Roll for whether to have a major event
     pub fn major_event(&mut self, state: &WorldState) -> Option<GameEvent> {
         match self.rng.gen_range(1..=1_000) {
-            0..=25 => {
+            0..=35 => {
                 if state.bugs == 0 {
                     return None;
                 }
@@ -220,7 +221,7 @@ impl EventReactor {
 
                 Some(GameEvent::BugReported(task))
             }
-            920..=1_000 => {
+            950..=1_000 => {
                 let n_new_tasks = self.rng.gen_range(1..=3);
 
                 let tasks = (0..n_new_tasks)
@@ -238,7 +239,7 @@ impl EventReactor {
 
                 Some(GameEvent::MajorFeatureRequested { message: 0, tasks })
             }
-            700..=899 => Some(GameEvent::RandomReport(self.rng.gen_range(0..=5))),
+            750..=899 => Some(GameEvent::RandomReport(self.rng.gen_range(0..=5))),
             _ => {
                 // do nothing
                 None
@@ -253,7 +254,6 @@ impl EventReactor {
         task_ingest_rate: u32,
         tasks_in_backlog: usize,
     ) -> Option<GameTaskBuilder> {
-
         let det = 4_400 + task_ingest_rate;
         let num = task_ingest_rate + you_experience;
 
@@ -315,7 +315,10 @@ impl EventReactor {
 
     /// Generate a new human
     pub fn new_human(&mut self, id: u32, month: u32) -> GameHuman {
-        let experience = self.rng.gen_range(30..70);
+
+        let dist = rand_distr::Normal::new(50_f32, 10.).unwrap_throw();
+        let experience = dist.sample(&mut self.rng).clamp(35., 80.) as u32;
+
         GameHuman::new(
             id,
             HUMAN_NAMES[month as usize % HUMAN_NAMES.len()],
@@ -325,12 +328,12 @@ impl EventReactor {
     }
 }
 
-static HUMAN_NAMES: [&'static str; 18] = [
-    "May", "Ben", "Bob", "Joan", "Sam", "Kris", "Joe", "Jon", "Sue", "Tim", "Dory", "Craig",
-    "Chan", "Yao", "Tom", "Abe", "Mary", "Ray",
+static HUMAN_NAMES: [&'static str; 16] = [
+    "May", "Ben", "Joan", "Sam", "Kris", "Joe", "Sue", "Tim", "Dory", "Tom", "Anne", "Abe", "Yao",
+    "Mary", "Ray", "Jon",
 ];
 
-static HUMAN_COLORS: [&'static str; 18] = [
-    "#00d", "#dd0", "#c6c", "#0cc", "#0dd", "#ddd", "#d00", "#6c0", "#d0d", "#c0c", "#ddc", "#cdd",
-    "#c6c", "#3f7", "#c0c", "#dd0", "#c0c", "#f30",
+static HUMAN_COLORS: [&'static str; 16] = [
+    "#00d", "#dd0", "#c6c", "#0cc", "#0dd", "#ccc", "#d00", "#6c0", "#d0d", "#c0c", "#ddc", "#cdd",
+    "#c6c", "#3f7", "#c0c", "#f30",
 ];

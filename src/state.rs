@@ -239,7 +239,7 @@ impl WorldState {
                 self.complexity += 1 + difficulty / 4;
             }
             TaskKind::Chore => {
-                self.complexity = self.complexity.saturating_sub(1 + difficulty / 4);
+                self.complexity = self.complexity.saturating_sub(2 + difficulty / 4);
             }
         }
 
@@ -489,7 +489,7 @@ impl WorldState {
 
                 // do progress on task
                 let added_progress =
-                    (1 + human.experience) as f64 / (task.difficulty * self.complexity * 32) as f64;
+                    0.005 + (5 + human.experience) as f64 / (task.difficulty * 45 + self.complexity * 50) as f64;
                 let complete = task.add_progress(added_progress);
                 human.status = HumanStatus::Coding;
 
