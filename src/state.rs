@@ -600,6 +600,7 @@ impl WorldState {
             if let Some(new_task) = reactor.ingest_task(
                 you_experience,
                 self.bugs,
+                self.complexity,
                 self.task_ingest_rate,
                 self.tasks_backlog.len(),
             ) {

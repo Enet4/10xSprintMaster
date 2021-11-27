@@ -236,25 +236,6 @@ impl Default for TaskKind {
     }
 }
 
-impl Distribution<TaskKind> for Standard {
-    fn sample<R: ?Sized>(&self, rng: &mut R) -> TaskKind
-    where
-        R: Rng,
-    {
-        // normal: 4 / 8
-        // bug: 1 / 8
-        // chore: 3 / 8
-
-        let index: u8 = rng.gen_range(0..8);
-        match index {
-            0..=3 => TaskKind::Normal,
-            4 => TaskKind::Bug,
-            5..=7 => TaskKind::Chore,
-            _ => unreachable!(),
-        }
-    }
-}
-
 #[derive(Debug)]
 pub enum Msg {
     /// The user started dragging the task.

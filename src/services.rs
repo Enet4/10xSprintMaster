@@ -251,6 +251,7 @@ impl EventReactor {
         &mut self,
         you_experience: u32,
         bugs: u32,
+        complexity: u32,
         task_ingest_rate: u32,
         tasks_in_backlog: usize,
     ) -> Option<GameTaskBuilder> {
@@ -267,7 +268,25 @@ impl EventReactor {
         };
 
         if self.rng.gen_ratio(num.min(det) as u32, det) {
-            let mut kind: TaskKind = self.rng.gen();
+
+            // weighted sampling
+            // - bug finding is weighed on nr of bugs
+            // - chore tasks are weighed on complexity
+            let n_fraction = 20;
+            let b_fraction = bugs;
+            let c_fraction = complexity / 2;
+            let d = n_fraction + b_fraction + c_fraction;
+
+            let i: u32 = self.rng.gen_range(0..d);
+
+            let mut kind = if i < b_fraction {
+                TaskKind::Bug
+            } else if i >= d - c_fraction {
+                TaskKind::Chore
+            } else {
+                TaskKind::Normal
+            };
+
             if kind == TaskKind::Bug && bugs == 0 {
                 kind = TaskKind::Chore;
             }
