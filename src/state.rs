@@ -477,6 +477,26 @@ impl WorldState {
 
         let mut worked = HashSet::new();
 
+        let mut score_penalty = 0;
+        let time = self.time;
+        // detect unfulfilled tasks
+        for task in self.all_tasks_iter_mut() {
+            if let Some(deadline) = task.deadline {
+                if deadline < time {
+                    
+                    // apply penalty
+                    score_penalty += task.score * 1_000;
+
+                    // reset deadline
+                    task.deadline = None;
+                }
+            }
+        }
+        if score_penalty > 0 {
+            self.total_score = self.total_score.saturating_sub(score_penalty as u32);
+            self.score_in_month -= score_penalty as i32;
+        }
+
         // apply human work (development)
         for task in &mut self.tasks_progress {
             if task.is_developed() {
@@ -492,8 +512,9 @@ impl WorldState {
                 let human = self.humans.get_mut(human_id as usize).unwrap_throw();
 
                 // do progress on task
-                let added_progress =
-                    0.005 + (5 + human.experience) as f64 / (task.difficulty * 60 + self.complexity * 55) as f64;
+                let added_progress = 0.005
+                    + (5 + human.experience) as f64
+                        / (task.difficulty * 60 + self.complexity * 55) as f64;
                 let complete = task.add_progress(added_progress);
                 human.status = HumanStatus::Coding;
 
@@ -729,25 +750,11 @@ impl WorldState {
             // remove onboard guy
             if let Some(guy) = self.humans.iter_mut().find(|h| h.name == "Guy") {
                 guy.quit = true;
+                let guy_id = guy.id;
 
                 // unassign tasks everywhere
-                for t in &mut self.tasks_backlog {
-                    if t.assigned == Some(guy.id) {
-                        t.assigned = None;
-                    }
-                }
-                for t in &mut self.tasks_candidate {
-                    if t.assigned == Some(guy.id) {
-                        t.assigned = None;
-                    }
-                }
-                for t in &mut self.tasks_progress {
-                    if t.assigned == Some(guy.id) {
-                        t.assigned = None;
-                    }
-                }
-                for t in &mut self.tasks_review {
-                    if t.assigned == Some(guy.id) {
+                for t in self.all_tasks_iter_mut() {
+                    if t.assigned == Some(guy_id) {
                         t.assigned = None;
                     }
                 }
@@ -763,8 +770,8 @@ impl WorldState {
             return None;
         }
 
-        // ingest a bunch of normal tasks at once
-        self.add_tasks(reactor.ingest_normal_tasks(self.month, self.task_ingest_rate));
+        // ingest a bunch of important tasks at once
+        self.add_tasks(reactor.ingest_important_tasks(self.month, self.task_ingest_rate));
 
         // check whether it is time to introduce another human
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
@@ -809,6 +816,15 @@ impl WorldState {
         self.humans.last().map(|t| t.id + 1).unwrap_or(0)
     }
 
+    /// get an iterator for all non-merged tasks, mutable
+    fn all_tasks_iter_mut(&mut self) -> impl Iterator<Item = &mut GameTask> {
+        self.tasks_backlog
+            .iter_mut()
+            .chain(self.tasks_candidate.iter_mut())
+            .chain(self.tasks_progress.iter_mut())
+            .chain(self.tasks_review.iter_mut())
+    }
+
     fn month_report(&self) -> MonthlyReport {
         MonthlyReport {
             month: self.month,
@@ -823,15 +839,20 @@ impl WorldState {
     fn add_task(&mut self, task: GameTaskBuilder) -> u32 {
         let id = self.next_task_id;
         self.next_task_id += 1;
-        gloo_console::debug!("New task:", id, "; next task:", self.next_task_id);
         let created = self.time;
         let GameTaskBuilder {
             description,
             kind,
             score,
             difficulty,
+            max_time,
         } = task;
-        let task = GameTask::new(id, created, description, kind, score, difficulty);
+        let task = if let Some(max_time) = max_time {
+            let deadline = self.time + max_time;
+            GameTask::new_with_deadline(id, created, deadline, description, kind, score, difficulty)
+        } else {
+            GameTask::new(id, created, description, kind, score, difficulty)
+        };
         self.tasks_backlog.push(task);
         id
     }

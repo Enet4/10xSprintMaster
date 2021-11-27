@@ -1,7 +1,5 @@
 use std::borrow::Cow;
 
-use rand::Rng;
-use rand_distr::{Distribution, Standard};
 use serde::{Deserialize, Serialize};
 use yew::{agent::Dispatcher, prelude::*};
 
@@ -69,6 +67,8 @@ pub struct GameTaskBuilder {
     /// A measurement of difficulty or effort to complete the task.
     /// Should be around 10 on average.
     pub difficulty: u32,
+    /// number of ticks after which the task is due
+    pub max_time: Option<u32>,
 }
 
 impl GameTaskBuilder {
@@ -84,6 +84,23 @@ impl GameTaskBuilder {
             kind,
             score,
             difficulty,
+            max_time: None,
+        }
+    }
+
+    /// Create a new task builder with a 1 month deadline
+    pub fn new_with_deadline(
+        description: impl Into<String>,
+        kind: TaskKind,
+        score: i32,
+        difficulty: u32,
+    ) -> Self {
+        Self {
+            description: description.into(),
+            kind,
+            score,
+            difficulty,
+            max_time: Some(crate::state::TICKS_PER_MONTH),
         }
     }
 }
@@ -233,6 +250,8 @@ pub struct Props {
     /// The number of bugs in the task found through review
     #[prop_or(0)]
     pub bugs_found: u32,
+    /// Portion of time left before reaching the deadline 
+    pub deadline_ratio: Option<f32>,
 }
 
 /// View component for a task (done or to be done).
@@ -328,12 +347,21 @@ impl Component for Task {
             TaskKind::Chore => "board-task board-task-chore",
             TaskKind::Bug => "board-task board-task-bug",
         };
+        let mut extra_style = Cow::Borrowed("");
         classes.push(class_kind);
         if self.props.progress >= 1. {
             classes.push("board-task-complete");
         }
         if self.props.bugs_found > 0 {
             classes.push("board-task-with-bug");
+        }
+        if let Some(deadline_ratio) = self.props.deadline_ratio {
+            classes.push("board-task-important");
+
+            extra_style = Cow::Owned(
+                format!("background: linear-gradient(to right, #ccf 0%, #eee {}%);",
+                deadline_ratio * 100.
+            ));
         }
 
         let task_id = self.props.id;
@@ -385,7 +413,7 @@ impl Component for Task {
 
         let task_score_class = "board-task-score";
         html! {
-            <div id=e_id class=classes draggable="true" title=description
+            <div id=e_id class=classes style=extra_style draggable="true" title=description
                  ondrag=drag_handler
                  ondragstart=dragstart_handler
                  ondragend=dragend_handler

@@ -74,6 +74,10 @@
     transition-timing-function: linear;
 }
 
+.board-task-important {
+    font-weight: bold;
+}
+
 .board-task-assigned {
     display: inline-block;
     width: 0.8rem;

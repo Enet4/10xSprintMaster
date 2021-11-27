@@ -226,7 +226,7 @@ impl EventReactor {
 
                 let tasks = (0..n_new_tasks)
                     .map(|_| {
-                        GameTaskBuilder::new(
+                        GameTaskBuilder::new_with_deadline(
                             "Extraordinary task",
                             TaskKind::Normal,
                             // generally higher score than usual
@@ -311,7 +311,7 @@ impl EventReactor {
 
     /// A procedure to generate multiple feature tasks
     /// at the beginning of the month.
-    pub fn ingest_normal_tasks(
+    pub fn ingest_important_tasks(
         &mut self,
         month: u32,
         task_ingest_rate: u32,
@@ -327,7 +327,7 @@ impl EventReactor {
             .map(|_| {
                 let score = self.rng.gen_range(base_score..=(base_score + 6));
                 let difficulty = self.rng.gen_range(base_difficulty..(base_difficulty + 10));
-                GameTaskBuilder::new("", TaskKind::Normal, score, difficulty)
+                GameTaskBuilder::new_with_deadline("", TaskKind::Normal, score, difficulty)
             })
             .collect()
     }
