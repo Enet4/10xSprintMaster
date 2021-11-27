@@ -776,7 +776,7 @@ impl WorldState {
         // check whether it is time to introduce another human
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
 
-        let expected_humans = 1 + (self.month + 3) / 6;
+        let expected_humans = (1 + (self.month + 3) / 6).min(10);
 
         if expected_humans as usize > humans_count {
             // introduce a new human
