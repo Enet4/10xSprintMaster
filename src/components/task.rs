@@ -16,6 +16,10 @@ pub struct GameTask {
     pub id: u32,
     /// timestamp of the moment that the task was created
     pub created: Timestamp,
+    /// timestamp of moment to deliver the task
+    /// (otherwise there's a penalty)
+    #[serde(default)]
+    pub deadline: Option<Timestamp>,
     /// a description of the task
     pub description: String,
     /// the kind of task
@@ -97,6 +101,7 @@ impl GameTask {
         Self {
             id,
             created,
+            deadline: None,
             description: description.into(),
             kind,
             stage: StageId::Backlog,
@@ -111,6 +116,36 @@ impl GameTask {
             visible: true,
         }
     }
+
+    /// Create a new task in the backlog with a deadline
+    pub fn new_with_deadline(
+        id: u32,
+        created: Timestamp,
+        deadline: Timestamp,
+        description: impl Into<String>,
+        kind: TaskKind,
+        score: i32,
+        difficulty: u32,
+    ) -> Self {
+        Self {
+            id,
+            created,
+            deadline: Some(deadline),
+            description: description.into(),
+            kind,
+            stage: StageId::Backlog,
+            assigned: None,
+            developed_by: None,
+            score,
+            difficulty,
+            progress: 0.,
+            specified: false,
+            bugs: if kind == TaskKind::Bug { 1 } else { 0 },
+            bugs_found: if kind == TaskKind::Bug { 1 } else { 0 },
+            visible: true,
+        }
+    }
+    
 
     /// Add some progress.
     /// Return whether the task has reached 100% progress.
