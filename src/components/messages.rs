@@ -116,9 +116,9 @@ fn end_of_month(report: &MonthlyReport) -> Html {
     let complexity = match report.complexity {
         0..=7 => "very low",
         8..=15 => "low",
-        16..=30 => "manageable",
-        31..=50 => "high",
-        51..=70 => "very high",
+        16..=40 => "manageable",
+        41..=64 => "high",
+        65..=70 => "very high",
         _ => "unbearable",
     };
 
