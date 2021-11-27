@@ -97,7 +97,6 @@ impl Component for App {
                 true
             }
             Msg::ContinueGame => {
-                // TODO change origin to Continue in prod
                 self.state = AppState::Game(GameStateOrigin::Continue);
                 true
             }

@@ -33,6 +33,12 @@
     letter-spacing: -0.4em;
 }
 
+.status-top .btn-sound {
+    display: inline-block;
+    margin-left: 8px;
+    margin-right: 16px;
+}
+
 .speed-set {
     color: green;
 }
@@ -75,7 +81,7 @@
 
 .status-score {
     float: right;
-    margin-right: 8px;
+    margin-right: 12px;
     margin-left: auto;
     margin-top: auto;
 }

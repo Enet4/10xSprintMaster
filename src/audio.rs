@@ -15,9 +15,17 @@ pub fn play_endofmonth() {
 }
 
 pub fn play(file_path: &str) {
-    let click_audio = HtmlAudioElement::new_with_src(file_path).unwrap_throw();
-    click_audio.set_cross_origin(Some("anonymous"));
-    let _ = click_audio.play();
+    match is_enabled() {
+        Ok(true) => {
+            let click_audio = HtmlAudioElement::new_with_src(file_path).unwrap_throw();
+            click_audio.set_cross_origin(Some("anonymous"));
+            let _ = click_audio.play();
+        }
+        Ok(false) => {},
+        Err(e) => {
+            gloo_console::error!("Error playing audio:", e);
+        }
+    }
 }
 
 pub fn is_enabled() -> Result<bool, JsValue> {

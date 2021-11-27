@@ -45,6 +45,8 @@ pub enum Msg {
     Pause,
     /// an event to change the speed of in-game time
     SetGameSpeed(GameSpeed),
+    /// enable or disable sound
+    ToggleSound,
 }
 
 pub struct Game {
@@ -57,6 +59,9 @@ pub struct Game {
 
     /// The full game state.
     state: WorldState,
+
+    /// Whether audio is enabled.
+    sound_enabled: bool,
 
     /// Producer of random events.
     reactor: EventReactor,
@@ -96,6 +101,9 @@ impl Component for Game {
             GameStateOrigin::Dummy => WorldState::dummy(),
         };
 
+        let sound_enabled =
+            crate::audio::is_enabled().expect_throw("Could not load audio settings");
+
         let mut watch = GameWatch::new();
 
         // start the watch
@@ -118,6 +126,7 @@ impl Component for Game {
             props,
             modal: None,
             state,
+            sound_enabled,
             bring_humans_up: false,
             reactor: EventReactor::new(),
             dispatch,
@@ -140,7 +149,14 @@ impl Component for Game {
                     false
                 }
             }
-
+            Msg::ToggleSound => {
+                self.sound_enabled = !self.sound_enabled;
+                crate::audio::set_audio(self.sound_enabled).expect_throw("Could not save audio settings");
+                if self.sound_enabled {
+                    play_zipclick();
+                }
+                true
+            }
             Msg::CloseModal => {
                 self.modal = None;
                 // resume game
@@ -460,17 +476,33 @@ impl Component for Game {
             Msg::SetGameSpeed(GameSpeed::Faster)
         });
 
-        let (class_paused, class_normal, class_fast, class_faster) = match self.watch.current_speed() {
-            None => ("speed-paused", "", "speed-fast", "speed-faster"),
-            Some(GameSpeed::Normal) => ("", "speed-set", "speed-fast", "speed-faster"),
-            Some(GameSpeed::Fast) => ("", "", "speed-fast speed-set", "speed-faster"),
-            Some(GameSpeed::Faster) => ("", "", "speed-fast", "speed-faster speed-set"),
+        let sound_handler = self.link.callback(move |_| Msg::ToggleSound);
+
+        let (class_paused, class_normal, class_fast, class_faster) =
+            match self.watch.current_speed() {
+                None => ("speed-paused", "", "speed-fast", "speed-faster"),
+                Some(GameSpeed::Normal) => ("", "speed-set", "speed-fast", "speed-faster"),
+                Some(GameSpeed::Fast) => ("", "", "speed-fast speed-set", "speed-faster"),
+                Some(GameSpeed::Faster) => ("", "", "speed-fast", "speed-faster speed-set"),
+            };
+        
+        let sound_icon = if self.sound_enabled {
+            "🕪"
+        } else {
+            "🕨"
+        };
+
+        let sound_tooltip = if self.sound_enabled {
+            "Audio is enabled; press to disable"
+        } else {
+            "Audio is disabled; press to enable"
         };
 
         html! {
             <>
                 <div class="status-top">
-                    { "Month " } {month} 
+                    <button class="btn-sound" title=sound_tooltip onclick=sound_handler>{sound_icon}</button>
+                    { "Month " } {month}
                     <button class=class_paused onclick=pause_handler>{"⏸"}</button>
                     <button class=class_normal onclick=normal_speed_handler>{"▶"}</button>
                     <button class=class_fast onclick=fast_speed_handler>{"▶▶"}</button>
