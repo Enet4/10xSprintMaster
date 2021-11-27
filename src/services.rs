@@ -153,7 +153,7 @@ impl EventReactor {
         task: &GameTask,
         project_complexity: u32,
     ) -> bool {
-        let det = 2_000 + human.experience * 45;
+        let det = 3_000 + human.experience * 20;
         let mut num = task.difficulty * project_complexity / 2;
 
         // if bugs were found before,

@@ -114,7 +114,8 @@ fn extra_technical_debt(message: u32) -> Html {
 
 fn end_of_month(report: &MonthlyReport) -> Html {
     let complexity = match report.complexity {
-        0..=15 => "low",
+        0..=7 => "very low",
+        8..=15 => "low",
         16..=30 => "manageable",
         31..=50 => "high",
         51..=70 => "very high",
@@ -321,10 +322,10 @@ fn tutorial(phase: u32) -> Html {
                     {"You can either give me tasks to code for, or let me review your own code."}
                 </p>
                 <p>
-                    {"Peer review is generally better: since the writer of the code will be a bit biased, "}
-                    {"it will be easier for them to overlook certain bugs."}
-                    {"You might not always have the opportunity to do peer review on each task. "}
-                    {"But I do recommend that you strongly for it in the future though!"}
+                    {"Peer review is generally better: since the writer of the code is a bit biased, "}
+                    {"it will be easier for other developers to discover certain bugs. "}
+                    {"You might not always have the opportunity to do peer review on each and every task, "}
+                    {"but I would strongly recommend it in the future!"}
                 </p>
             </>
         },

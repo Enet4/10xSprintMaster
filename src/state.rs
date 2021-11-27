@@ -154,7 +154,7 @@ impl WorldState {
             bugs: 0,
             bugs_fixed_in_month: 0,
             bugs_fixed_in_total: 0,
-            complexity: 10,
+            complexity: 15,
             score_linger_rate: 0,
             tasks_backlog: vec![],
             tasks_candidate: vec![],
@@ -216,6 +216,8 @@ impl WorldState {
 
         // unassign it from the human
         task.assigned = None;
+        // remove progress
+        task.progress = 0.;
 
         // get task properties for calculations
         let kind = task.kind;
@@ -489,7 +491,7 @@ impl WorldState {
 
                 // do progress on task
                 let added_progress =
-                    0.005 + (5 + human.experience) as f64 / (task.difficulty * 45 + self.complexity * 50) as f64;
+                    0.005 + (5 + human.experience) as f64 / (task.difficulty * 50 + self.complexity * 50) as f64;
                 let complete = task.add_progress(added_progress);
                 human.status = HumanStatus::Coding;
 
@@ -522,7 +524,7 @@ impl WorldState {
                         task.bugs = task.bugs.max(1);
                         // increase experience of You
                         // (to make bug a bit easier to find)
-                        self.humans[0].experience += 2;
+                        self.humans[0].experience += 1;
                         // advance tutorial
                         return self.advance_tutorial();
                     }
@@ -711,7 +713,7 @@ impl WorldState {
         self.bugs_fixed_in_month = 0;
 
         // update task ingestion rate
-        self.task_ingest_rate += 2;
+        self.task_ingest_rate += 1;
 
         // hide tasks done
         for t in &mut self.tasks_done {
@@ -765,7 +767,7 @@ impl WorldState {
 
             if *phase == 11 {
                 // add onboard guy to team
-                let guy = GameHuman::new(1, "Guy", "#333", 250);
+                let guy = GameHuman::new(1, "Guy", "#333", 126);
                 self.humans.push(guy);
             }
 
@@ -867,6 +869,7 @@ fn dummy_state() -> WorldState {
         tasks_progress: vec![GameTask {
             id: 4,
             created: 5_200,
+            deadline: None,
             description: "Test a task in progress".to_string(),
             kind: TaskKind::Normal,
             stage: StageId::Progress,
