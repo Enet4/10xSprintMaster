@@ -236,6 +236,8 @@ impl WorldState {
         match kind {
             TaskKind::Bug => {
                 self.complexity += difficulty / 5;
+                // remove bug that was upstream
+                self.bugs -= 1;
             }
             TaskKind::Normal => {
                 self.complexity += 1 + difficulty / 4;
@@ -491,7 +493,7 @@ impl WorldState {
 
                 // do progress on task
                 let added_progress =
-                    0.005 + (5 + human.experience) as f64 / (task.difficulty * 50 + self.complexity * 50) as f64;
+                    0.005 + (5 + human.experience) as f64 / (task.difficulty * 60 + self.complexity * 55) as f64;
                 let complete = task.add_progress(added_progress);
                 human.status = HumanStatus::Coding;
 
@@ -727,6 +729,28 @@ impl WorldState {
             // remove onboard guy
             if let Some(guy) = self.humans.iter_mut().find(|h| h.name == "Guy") {
                 guy.quit = true;
+
+                // unassign tasks everywhere
+                for t in &mut self.tasks_backlog {
+                    if t.assigned == Some(guy.id) {
+                        t.assigned = None;
+                    }
+                }
+                for t in &mut self.tasks_candidate {
+                    if t.assigned == Some(guy.id) {
+                        t.assigned = None;
+                    }
+                }
+                for t in &mut self.tasks_progress {
+                    if t.assigned == Some(guy.id) {
+                        t.assigned = None;
+                    }
+                }
+                for t in &mut self.tasks_review {
+                    if t.assigned == Some(guy.id) {
+                        t.assigned = None;
+                    }
+                }
             }
         }
 
