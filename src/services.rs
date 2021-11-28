@@ -153,7 +153,7 @@ impl EventReactor {
         task: &GameTask,
         project_complexity: u32,
     ) -> bool {
-        let det = 3_000 + human.experience * 20;
+        let det = 3_500 + human.experience * 16;
         let mut num = task.difficulty * project_complexity / 2;
 
         // if bugs were found before,
@@ -179,7 +179,7 @@ impl EventReactor {
         }
 
         for _ in task.bugs_found..task.bugs {
-            let det = 2_000 + project_complexity * task.difficulty * 40;
+            let det = 2_000 + task.difficulty * 70 + project_complexity * 60;
             let num = 10 + human.experience / 2;
             // triple the chances if reviewed by someone else
             let num = if task.developed_by != Some(human.id) {
@@ -270,14 +270,20 @@ impl EventReactor {
         };
 
         if self.rng.gen_ratio(num.min(det) as u32, det) {
-
             // weighted sampling
             // - bug finding is weighed on nr of bugs
             // - chore tasks are weighed on complexity
             let n_fraction = 24;
             let b_fraction = bugs;
             let c_fraction = complexity / 2;
-            gloo_console::debug!("ingestion fractions - n: ", n_fraction, " b:", b_fraction, " c:", c_fraction);
+            gloo_console::debug!(
+                "ingestion fractions - n: ",
+                n_fraction,
+                " b:",
+                b_fraction,
+                " c:",
+                c_fraction
+            );
             let d = n_fraction + b_fraction + c_fraction;
 
             let i: u32 = self.rng.gen_range(0..d);
@@ -337,16 +343,12 @@ impl EventReactor {
 
     /// Generate a new human
     pub fn new_human(&mut self, id: u32, month: u32) -> GameHuman {
-
         let dist = rand_distr::Normal::new(50_f32, 10.).unwrap_throw();
         let experience = dist.sample(&mut self.rng).clamp(35., 80.) as u32;
 
-        GameHuman::new(
-            id,
-            HUMAN_NAMES[month as usize % HUMAN_NAMES.len()],
-            HUMAN_COLORS[month as usize % HUMAN_COLORS.len()],
-            experience,
-        )
+        let n = month.saturating_sub(3) as usize % HUMAN_NAMES.len();
+
+        GameHuman::new(id, HUMAN_NAMES[n], HUMAN_COLORS[n], experience)
     }
 }
 

@@ -27,7 +27,7 @@ pub const TICKS_PER_MONTH: u32 = 1_000;
 pub const TICKS_PER_MAJOR_TICK: u32 = 250;
 
 /// A magic constant that decides the rate of score lingering based on technical debt
-pub const LINGER_FACTOR: u32 = 120;
+pub const LINGER_FACTOR: u32 = 80;
 
 /// The number of ticks for the score to linger.
 pub const TICKS_PER_SCORE_DAMAGE: u32 = 25;
@@ -154,7 +154,7 @@ impl WorldState {
             bugs: 6,
             bugs_fixed_in_month: 0,
             bugs_fixed_in_total: 0,
-            complexity: 15,
+            complexity: 25,
             score_linger_rate: 0,
             tasks_backlog: vec![],
             tasks_candidate: vec![],
@@ -253,9 +253,8 @@ impl WorldState {
 
     fn update_score_linger_rate(&mut self) {
         // update based on bugs and complexity
-        // TODO refine
         self.score_linger_rate =
-            ((self.bugs + self.complexity / 2) * LINGER_FACTOR).saturating_sub(50);
+            ((self.bugs + self.complexity / 8) * LINGER_FACTOR).saturating_sub(50);
 
         // !!! remove in prod
         gloo_console::debug!(

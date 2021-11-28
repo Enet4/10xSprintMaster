@@ -118,10 +118,10 @@ fn extra_technical_debt(message: u32) -> Html {
 
 fn end_of_month(report: &MonthlyReport) -> Html {
     let complexity = match report.complexity {
-        0..=7 => "very low",
-        8..=19 => "low",
-        20..=45 => "manageable",
-        46..=69 => "high",
+        0..=10 => "very low",
+        11..=20 => "low",
+        21..=50 => "manageable",
+        51..=69 => "high",
         70..=96 => "very high",
         _ => "unbearable",
     };
