@@ -21,7 +21,7 @@ pub fn play(file_path: &str) {
             click_audio.set_cross_origin(Some("anonymous"));
             let _ = click_audio.play();
         }
-        Ok(false) => {},
+        Ok(false) => {}
         Err(e) => {
             gloo_console::error!("Error playing audio:", e);
         }
