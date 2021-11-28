@@ -32,6 +32,9 @@ pub const LINGER_FACTOR: u32 = 80;
 /// The number of ticks for the score to linger.
 pub const TICKS_PER_SCORE_DAMAGE: u32 = 25;
 
+/// The number of 1000ths of points required to reach the victory condition
+const CPO_SCORE_THRESHOLD: u32 = 2_000_000;
+
 /// A type for a partiular moment in game time.
 /// This is the number of ticks since the creation of a new game.
 pub type Timestamp = u32;
@@ -138,6 +141,22 @@ pub struct MonthlyReport {
     pub bugs_fixed: u32,
     /// current project complexity
     pub complexity: u32,
+}
+
+#[derive(Debug)]
+pub struct FullReport {
+    /// product name
+    pub product_name: Rc<str>,
+    /// months at end
+    pub months: u32,
+    /// team size at end
+    pub team_size: u32,
+    /// total score in units
+    pub total_score: u32,
+    /// tasks done in total
+    pub tasks_done: usize,
+    /// bugs fixed in total
+    pub bugs_fixed: u32,
 }
 
 impl WorldState {
@@ -538,6 +557,7 @@ impl WorldState {
                     task.developed_by = Some(human.id);
                     // record bugs fixed
                     self.bugs_fixed_in_month += task.bugs_found;
+                    self.bugs_fixed_in_total += task.bugs_found;
                     // clear bugs found
                     task.bugs -= task.bugs_found;
                     task.bugs_found = 0;
@@ -684,7 +704,7 @@ impl WorldState {
                 }
 
                 Some(GameEvent::ExtraTechnicalDebt {
-                    message,
+                    message: _,
                     extra_complexity,
                 }) => {
                     self.complexity += extra_complexity;
@@ -693,7 +713,7 @@ impl WorldState {
                     return EventOutcome::OpenMessage(message);
                 }
 
-                Some(GameEvent::MajorFeatureRequested { message, tasks }) => {
+                Some(GameEvent::MajorFeatureRequested { message: _, tasks }) => {
                     self.add_tasks(tasks);
 
                     // open modal with a major feature request message
@@ -774,9 +794,19 @@ impl WorldState {
         // ingest a bunch of important tasks at once
         self.add_tasks(reactor.ingest_important_tasks(self.month, self.task_ingest_rate));
 
-        // check whether it is time to introduce another human
+
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
 
+        // identify win condition
+        if self.total_score >= CPO_SCORE_THRESHOLD && humans_count >= 6 {
+            // win condition met, ask if they want to be promoted
+            let message = Message::Ceo {
+                product_name: self.product_name.clone(),
+            };
+            return Some(EventOutcome::OpenMessage(message));
+        }
+
+        // check whether it is time to introduce another human
         let expected_humans = (1 + (self.month + 3) / 6).min(10);
 
         if expected_humans as usize > humans_count {
@@ -861,6 +891,17 @@ impl WorldState {
     fn add_tasks(&mut self, task: impl IntoIterator<Item = GameTaskBuilder>) {
         for t in task {
             self.add_task(t);
+        }
+    }
+
+    pub fn end_report(&self) -> FullReport {
+        FullReport {
+            product_name: self.product_name.clone(),
+            months: self.month,
+            team_size: self.humans.iter().filter(|h| !h.quit).count() as u32,
+            total_score: self.total_score / 1000,
+            tasks_done: self.tasks_done.len(),
+            bugs_fixed: self.bugs_fixed_in_total,
         }
     }
 }

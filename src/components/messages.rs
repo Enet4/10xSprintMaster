@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use yew::{html, Html};
 
-use crate::state::MonthlyReport;
+use crate::state::{FullReport, MonthlyReport};
 
 use super::human::GameHuman;
 
@@ -16,6 +16,15 @@ pub enum Message {
 
     /// End of month message.
     EndOfMonth(MonthlyReport),
+
+    /// A special message from the CEO
+    Ceo { product_name: Rc<str> },
+
+    /// The message after you decline the CEO's proposal
+    CeoDecline,
+
+    /// Game end message, no way to continue.
+    EndMessage(FullReport),
 }
 
 impl Message {
@@ -103,16 +112,10 @@ impl Message {
             }
             Message::EndOfMonth(report) => end_of_month(report),
             Message::Tutorial(phase) => tutorial(*phase),
+            Message::Ceo { product_name } => ceo(product_name),
+            Message::CeoDecline => ceo_decline(),
+            Message::EndMessage(report) => end_message(report),
         }
-    }
-}
-
-fn extra_technical_debt(message: u32) -> Html {
-    match message {
-        _ => html! {
-            <p>
-            </p>
-        },
     }
 }
 
@@ -398,4 +401,92 @@ fn tutorial(phase: u32) -> Html {
     };
 
     text_node
+}
+
+fn speaker_ceo() -> Html {
+    html! {
+        <div class="modal-speaker">
+            <div class="human-outer ceo">
+                <div class="human-head">
+                    <div class="human-eye">
+                        <div class="human-eye-pupil" />
+                    </div>
+                    <div class="human-eye">
+                        <div class="human-eye-pupil" />
+                    </div>
+                </div>
+                <div class="human-body" />
+                <div class="human-name" style="border-color: black">{ "CEO" }</div>
+            </div>
+        </div>
+    }
+}
+
+fn ceo(product_name: &str) -> Html {
+    html! {
+        <>
+            { speaker_ceo() }
+            <div class="modal-speaker-content">
+                <p>
+                    {"Warm greetings. I am most pleased to have seen your immense progress in "}{product_name}{" since you joined us. "}
+                    {"Your achievements are most impressive! "}
+                    {"I've been talking with the rest of the board about you, "}
+                    {"and they agree that you are just the kind we need to bring "}{product_name}
+                    {" to worlwide acclaim."}
+                </p>
+                <p>
+                    {"I will get straight to the chase. "}
+                    {"I want to promote you to Chief Product Engineer of the company. "}
+                    {"It comes with new products to oversee, a new salary, new office, more benefits, "}
+                    {"and you will be free to leave that workboard of yours to someone else."}
+                </p>
+                <p>
+                    {"So, do you accept?"}
+                </p>
+            </div>
+        </>
+    }
+}
+
+fn ceo_decline() -> Html {
+    html! {
+        <>
+            { speaker_ceo() }
+            <div class="modal-speaker-content">
+                <p>
+                    {"Well, I must say I am disappointed, but it's your call. "}
+                    {"You really seem to like that workboard. 🤷 "}
+                </p>
+            </div>
+        </>
+    }
+}
+
+fn end_message(report: &FullReport) -> Html {
+    html! {
+        <>
+            <p>
+                {"Your decision is made. "}
+                {"You accept the offer and step up in your career, "}
+                {"away from the software project board. "}
+                {"A new wave of challenges await."}
+            </p>
+            <p>
+                <strong>{"Thank you for playing 10x Sprint Master!"}</strong>
+            </p>
+            <h3>{&report.product_name}</h3>
+            <p>
+                {"Complete in "}
+                <strong>{report.months} {" months"}</strong>
+                {" with "}
+                <strong>{report.team_size}{" team members"}</strong>
+                {"."}
+            </p>
+            <ul class="month-report">
+                <li><strong>{"Total score: "}</strong><span>{report.total_score}</span></li>
+                <li><strong>{"Total tasks done: "}</strong><span>{report.tasks_done}</span></li>
+                <li><strong>{"Total number of bugs fixed: "}</strong><span>{report.bugs_fixed}</span></li>
+            </ul>
+        </>
+    }
 }

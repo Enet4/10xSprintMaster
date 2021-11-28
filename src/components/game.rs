@@ -37,6 +37,9 @@ pub enum Msg {
     CloseModal,
     /// hide the alert message
     HideAlert,
+    /// directly open a message by request of this component,
+    /// closing any currently open modal
+    OpenMessage(Message),
     /// an event was received via the event bus
     Event(EventBusRequest),
     /// an event to be triggered after some milliseconds
@@ -171,6 +174,14 @@ impl Component for Game {
 
                 true
             }
+            Msg::OpenMessage(msg) => {
+                // apply modal
+                self.modal = Some(msg);
+                // pause the game
+                self.watch.pause();
+
+                true
+            }
             Msg::HideAlert => {
                 self.alert_message = None;
                 true
@@ -199,8 +210,7 @@ impl Component for Game {
                     EventOutcome::Nothing => updated,
                     EventOutcome::Update => true,
                     EventOutcome::Alert(msg) => {
-                        // TODO show alert
-
+                        // show alert in board
                         gloo_console::warn!("alert:", msg);
 
                         self.alert_message = Some(msg.to_string());
@@ -429,6 +439,56 @@ impl Component for Game {
                             </Modal>
                         }
                     }
+                }
+            }
+            Some(msg @ Message::Ceo { .. }) => {
+                let report = self.state.end_report();
+                let accept_handler = self.link.callback_once(move |_| {
+                    play_zipclick();
+                    play_endofmonth();
+
+                    Msg::OpenMessage(Message::EndMessage(report))
+                });
+
+                let decline_handler = self.link.callback(move |_| {
+                    play_zipclick();
+
+                    Msg::OpenMessage(Message::CeoDecline)
+                });
+
+                html! {
+                    <Modal title="A message from the CEO">
+                        <div class="modal-body">
+                            { msg.body() }
+                        </div>
+                        <button onclick=accept_handler>{ "Accept" }</button>
+                        <button onclick=decline_handler>{ "Decline" }</button>
+                    </Modal>
+                }
+            }
+            Some(msg @ Message::EndMessage(..)) => {
+                // render the modal without any buttons
+                html! {
+                    <Modal title="Offer Accepted">
+                        <div class="modal-body">
+                            { msg.body() }
+                        </div>
+                    </Modal>
+                }
+            }
+            Some(msg @ Message::CeoDecline) => {
+                let click_handler = self.link.callback(move |_| {
+                    play_zipclick();
+                    Msg::CloseModal
+                });
+
+                html! {
+                    <Modal title="">
+                        <div class="modal-body">
+                            { msg.body() }
+                        </div>
+                        <button onclick=click_handler>{ "OK" }</button>
+                    </Modal>
                 }
             }
             None => html! {},
