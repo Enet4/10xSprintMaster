@@ -132,6 +132,8 @@ pub enum GameEvent {
         message: u32,
         tasks: Vec<GameTaskBuilder>,
     },
+    /// a human quit
+    HumanQuit(u32),
     /// a bug was reported by clients
     BugReported(GameTaskBuilder),
     /// Just show a random report
@@ -222,6 +224,21 @@ impl EventReactor {
                 );
 
                 Some(GameEvent::BugReported(task))
+            }
+            36..=99 => {
+                // someone quits due to project complexity
+                let human_count = state.humans.iter().filter(|h| !h.quit).count();
+                let complexity = state.complexity;
+                let pressure = complexity as u32 + human_count as u32 * 5;
+                if human_count > 1 && pressure >= 100 {
+                    // pick a random human to quit
+                    let index = self.rng.gen_range(1..=human_count - 1);
+                    let human = state.humans.iter().filter(|h| !h.quit).nth(index).unwrap();
+
+                    Some(GameEvent::HumanQuit(human.id))
+                } else {
+                    None
+                }
             }
             950..=1_000 => {
                 let n_new_tasks = self.rng.gen_range(1..=3);

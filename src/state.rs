@@ -420,7 +420,9 @@ impl WorldState {
                     return EventOutcome::Alert("The task is not fully specified yet!");
                 }
                 if game_task.assigned.is_none() {
-                    return EventOutcome::Alert("The task needs to be assigned to a developer first!");
+                    return EventOutcome::Alert(
+                        "The task needs to be assigned to a developer first!",
+                    );
                 }
                 // progress now means development progress
                 game_task.progress = 0.;
@@ -505,7 +507,6 @@ impl WorldState {
         for task in self.all_tasks_iter_mut() {
             if let Some(deadline) = task.deadline {
                 if deadline < time {
-                    
                     // apply penalty
                     score_penalty += task.score * 1_000;
 
@@ -719,7 +720,17 @@ impl WorldState {
                     // open modal with a major feature request message
                     return EventOutcome::OpenMessage(Message::feature_requested());
                 }
-
+                Some(GameEvent::HumanQuit(human_id)) => {
+                    // mark human as quit
+                    let human = self
+                        .humans
+                        .iter_mut()
+                        .find(|human| human.id == human_id)
+                        .unwrap();
+                    human.quit = true;
+                    // report by name
+                    return EventOutcome::OpenMessage(Message::human_quit(human.name.clone()));
+                }
                 None => {
                     // do nothing
                 }
@@ -793,7 +804,6 @@ impl WorldState {
 
         // ingest a bunch of important tasks at once
         self.add_tasks(reactor.ingest_important_tasks(self.month, self.task_ingest_rate));
-
 
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
 

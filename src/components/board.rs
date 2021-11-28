@@ -39,7 +39,9 @@ impl Component for Board {
     }
 
     fn view(&self) -> Html {
-        let alert_message = self.props.alert_message
+        let alert_message = self
+            .props
+            .alert_message
             .as_ref()
             .map(|s| s.as_str())
             .unwrap_or("");
@@ -49,7 +51,7 @@ impl Component for Board {
         } else {
             "alert-message alert-message-show"
         };
-        
+
         html! {
             <div class="board">
                 <h3>{&self.props.product_name}{" Workboard"}</h3>

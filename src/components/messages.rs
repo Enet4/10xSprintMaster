@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{borrow::Cow, collections::HashMap, rc::Rc};
 
 use yew::{html, Html};
 
@@ -115,6 +115,13 @@ impl Message {
             Message::Ceo { product_name } => ceo(product_name),
             Message::CeoDecline => ceo_decline(),
             Message::EndMessage(report) => end_message(report),
+        }
+    }
+
+    pub fn human_quit(name: Cow<str>) -> Message {
+        Message::Simple {
+            title: format!("{} is leaving the team", name),
+            message: format!("You were just informed that {} could not keep up with the pressure and left the company.", name),
         }
     }
 }

@@ -74,8 +74,7 @@ impl Component for App {
         let has_save = WorldState::has_save_in_storage().unwrap_or(false);
 
         // pre-load sound assets
-        let click_audio =
-            HtmlAudioElement::new_with_src(audio::ZIPCLICK).unwrap_throw();
+        let click_audio = HtmlAudioElement::new_with_src(audio::ZIPCLICK).unwrap_throw();
         click_audio.set_cross_origin(Some("anonymous"));
 
         Self {

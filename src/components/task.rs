@@ -3,7 +3,12 @@ use std::borrow::Cow;
 use serde::{Deserialize, Serialize};
 use yew::{agent::Dispatcher, prelude::*};
 
-use crate::{components::{bug, progress_bar}, data_transfer::{payload::TaskTransfer, DataTransfer, DragEffect}, event_bus::{EventBus, EventBusRequest}, state::Timestamp};
+use crate::{
+    components::{bug, progress_bar},
+    data_transfer::{payload::TaskTransfer, DataTransfer, DragEffect},
+    event_bus::{EventBus, EventBusRequest},
+    state::Timestamp,
+};
 
 use super::stage::StageId;
 
@@ -162,7 +167,6 @@ impl GameTask {
             visible: true,
         }
     }
-    
 
     /// Add some progress.
     /// Return whether the task has reached 100% progress.
@@ -250,7 +254,7 @@ pub struct Props {
     /// The number of bugs in the task found through review
     #[prop_or(0)]
     pub bugs_found: u32,
-    /// Portion of time left before reaching the deadline 
+    /// Portion of time left before reaching the deadline
     pub deadline_ratio: Option<f32>,
 }
 
@@ -358,8 +362,8 @@ impl Component for Task {
         if let Some(deadline_ratio) = self.props.deadline_ratio {
             classes.push("board-task-important");
 
-            extra_style = Cow::Owned(
-                format!("background: linear-gradient(to right, #ccf 0%, #eee {}%);",
+            extra_style = Cow::Owned(format!(
+                "background: linear-gradient(to right, #ccf 0%, #eee {}%);",
                 deadline_ratio * 100.
             ));
         }
@@ -387,9 +391,7 @@ impl Component for Task {
             Msg::StartDrag
         });
 
-        let dragend_handler = self.link.callback(move |_ev: DragEvent| {
-            Msg::EndDrag
-        });
+        let dragend_handler = self.link.callback(move |_ev: DragEvent| Msg::EndDrag);
 
         let drag_handler = self.link.callback(|ev: DragEvent| {
             let ev: &Event = ev.as_ref();

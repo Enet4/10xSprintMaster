@@ -159,7 +159,8 @@ impl Component for Game {
             }
             Msg::ToggleSound => {
                 self.sound_enabled = !self.sound_enabled;
-                crate::audio::set_audio(self.sound_enabled).expect_throw("Could not save audio settings");
+                crate::audio::set_audio(self.sound_enabled)
+                    .expect_throw("Could not save audio settings");
                 if self.sound_enabled {
                     play_zipclick();
                 }
@@ -572,12 +573,8 @@ impl Component for Game {
                 Some(GameSpeed::Fast) => ("", "", "speed-fast speed-set", "speed-faster"),
                 Some(GameSpeed::Faster) => ("", "", "speed-fast", "speed-faster speed-set"),
             };
-        
-        let sound_icon = if self.sound_enabled {
-            "🕪"
-        } else {
-            "🕨"
-        };
+
+        let sound_icon = if self.sound_enabled { "🕪" } else { "🕨" };
 
         let sound_tooltip = if self.sound_enabled {
             "Audio is enabled; press to disable"
@@ -657,12 +654,11 @@ impl Game {
     fn render_task(&self, t: &GameTask) -> Html {
         let assigned = self.assigned_of(&t);
 
-        let deadline_ratio = t.deadline
-            .map(|deadline| {
-                let expected_time = self.state.time.saturating_sub(t.created).max(1);
-                let time_left = deadline.saturating_sub(self.state.time);
-                time_left as f32 / expected_time as f32
-            });
+        let deadline_ratio = t.deadline.map(|deadline| {
+            let expected_time = self.state.time.saturating_sub(t.created).max(1);
+            let time_left = deadline.saturating_sub(self.state.time);
+            time_left as f32 / expected_time as f32
+        });
 
         html!(<Task key=t.id
             id=t.id kind=t.kind stage=t.stage assigned=assigned
