@@ -10,6 +10,7 @@
 }
 
 html {
+    background-color: white;
     font-size: 1.125rem;
     padding: 4px;
     min-width: 800px;
@@ -117,7 +118,7 @@ button:active {
 
 .modal {
     z-index: 11;
-    width: 680px;
+    width: 720px;
     max-width: 100%;
     min-height: 200px;
     max-height: 100%;
