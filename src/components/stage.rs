@@ -114,7 +114,7 @@ impl Component for Stage {
     }
 
     fn view(&self) -> Html {
-        let id = self.props.id.clone();
+        let id = self.props.id.to_str();
         let dragenter_handler = self.link.callback(move |ev: DragEvent| {
             {
                 let ev: &Event = ev.as_ref();
@@ -144,10 +144,10 @@ impl Component for Stage {
             Msg::DropTask(data)
         });
 
-        let e_id = format!("stage_{}", self.props.id.to_str());
+        let e_id = format!("stage_{}", id);
         html! {
             <div id=e_id
-                    class=classes!("board-stage", {format!("board-stage-{}", self.props.id.to_str())})
+                    class=classes!("board-stage", {format!("board-stage-{}", id)})
                     ondrop=drop_handler ondragover=dragover_handler ondragenter=dragenter_handler>
                 <div class="board-stage-header">{&self.props.description}</div>
                 <div class="board-stage-body">
