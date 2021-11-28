@@ -33,6 +33,10 @@
     border-radius: 45%;
 }
 
+.ceo .human-head {
+    border-radius: 25%;
+}
+
 .human-eye {
     display: inline-block;
     border-radius: 50%;
@@ -44,6 +48,9 @@
 }
 
 .you .human-eye {
+    border-radius: 25%;
+}
+.ceo .human-eye {
     border-radius: 25%;
 }
 
@@ -65,6 +72,10 @@
     border-right: 5px solid black;
     margin-left: auto;
     margin-right: auto;
+}
+
+.ceo .human-body {
+    border-radius: 25% 25% 0% 0%;
 }
 
 .human-name {
