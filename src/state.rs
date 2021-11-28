@@ -151,7 +151,7 @@ impl WorldState {
             next_task_id: 351,
             total_score: 0,
             score_in_month: 0,
-            bugs: 0,
+            bugs: 6,
             bugs_fixed_in_month: 0,
             bugs_fixed_in_total: 0,
             complexity: 15,
@@ -237,7 +237,7 @@ impl WorldState {
             TaskKind::Bug => {
                 self.complexity += difficulty / 5;
                 // remove bug that was upstream
-                self.bugs -= 1;
+                self.bugs = self.bugs.saturating_sub(1);
             }
             TaskKind::Normal => {
                 self.complexity += 1 + difficulty / 4;
@@ -255,8 +255,9 @@ impl WorldState {
         // update based on bugs and complexity
         // TODO refine
         self.score_linger_rate =
-            (self.bugs + (self.complexity * LINGER_FACTOR) / 2).saturating_sub(10);
+            ((self.bugs + self.complexity / 2) * LINGER_FACTOR).saturating_sub(50);
 
+        // !!! remove in prod
         gloo_console::debug!(
             "Complexity: ",
             self.complexity,
@@ -381,7 +382,6 @@ impl WorldState {
             }
             // from under review to done
             (StageId::Review, StageId::Done) => {
-                gloo_console::debug!("review -> done");
                 self.move_task(&task, to);
                 task.from = StageId::Done;
                 self.merge_task(&task);
@@ -397,9 +397,13 @@ impl WorldState {
             // only if the task is fully specified
             // and assigned to a developer:
             // from candidate to in progress
-            (StageId::Candidate, StageId::Progress)
-                if game_task.is_specified() && game_task.assigned.is_some() =>
-            {
+            (StageId::Candidate, StageId::Progress) => {
+                if !game_task.is_specified() {
+                    return EventOutcome::Alert("The task is not fully specified yet!");
+                }
+                if game_task.assigned.is_none() {
+                    return EventOutcome::Alert("The task needs to be assigned to a developer first!");
+                }
                 // progress now means development progress
                 game_task.progress = 0.;
                 self.move_task(&task, to);
@@ -419,7 +423,7 @@ impl WorldState {
 
                     EventOutcome::Update
                 } else {
-                    EventOutcome::Nothing
+                    EventOutcome::Alert("The task is not complete yet!")
                 }
             }
             // only if fully developed:
@@ -438,7 +442,7 @@ impl WorldState {
 
                     EventOutcome::Update
                 } else {
-                    EventOutcome::Nothing
+                    EventOutcome::Alert("The task is not complete yet!")
                 }
             }
             // only if not yet specified:
@@ -449,7 +453,7 @@ impl WorldState {
             }
             (_, _) => {
                 // not a valid move
-                EventOutcome::Nothing
+                EventOutcome::Alert("Invalid task move!")
             }
         }
     }
@@ -547,7 +551,7 @@ impl WorldState {
                         task.bugs = task.bugs.max(1);
                         // increase experience of You
                         // (to make bug a bit easier to find)
-                        self.humans[0].experience += 1;
+                        self.humans[0].experience += 2;
                         // advance tutorial
                         return self.advance_tutorial();
                     }
@@ -599,8 +603,6 @@ impl WorldState {
                 human.status = HumanStatus::Reviewing;
                 if reactor.human_detected_bug(human, task, self.complexity) {
                     task.bugs_found += 1;
-                    // !!! remove in prod
-                    gloo_console::debug!("Bug found in", format!("T{}", task.id));
 
                     // tutorial step when reviewing the first task
                     if self.tutorial == Some(6) {

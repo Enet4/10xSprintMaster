@@ -54,6 +54,10 @@ impl Message {
             2 => "Hey folks, let's go grab some coffee! ☕",
             3 => "I heard it's been a rough night for the DevOps team. I wonder why we still have a single DevOps team in the first place...",
             4 => "Things have been complicated over at DevOps. Lend a hand if you can.",
+            5 => "Today's sprint meeting was postponed to Thursday after lunch.",
+            6 => "Meetings, meetings, meetings. Can't get no work done with all these meetings! 😒",
+            7 => "Big Company at it again, huh?",
+            8 => "Is CI OK? It's taking ages to build!",
             _ => "Sorry, my mistake. There is no message for you.",
         };
         Message::new_simple(title, message)
@@ -133,14 +137,38 @@ fn end_of_month(report: &MonthlyReport) -> Html {
     }
 }
 
+fn speaker_guy() -> Html {
+    html! {
+        <div class="modal-speaker">
+            <div class="human-outer">
+                <div class="human-head">
+                    <div class="human-eye">
+                        <div class="human-eye-pupil" />
+                    </div>
+                    <div class="human-eye">
+                        <div class="human-eye-pupil" />
+                    </div>
+                </div>
+                <div class="human-body" />
+                <div class="human-name" style="border-color: #333">{ "Guy" }</div>
+            </div>
+        </div>
+    }
+}
+
 fn tutorial(phase: u32) -> Html {
     let text_node = match phase {
         1 => html! {
-            <p>
-                {"Hey there! So I heard you are going to replace me as the next development lead next month. 🙂 "}
-                {"I'll give you an overview of the code base"}
-                {" and explain how to coordinate a team once you have more developers involved."}
-            </p>
+            <>
+                { speaker_guy() }
+                <div class="modal-speaker-content">
+                    <p>
+                        {"Hey there! 👋 I'm Guy! I heard you are going to replace me as the next development lead next month. 🙂 "}
+                        {"I'll give you an overview of the code base"}
+                        {" and explain how to coordinate a team once you have more developers involved."}
+                    </p>
+                </div>
+            </>
         },
         2 => html! {
             <>
@@ -178,7 +206,7 @@ fn tutorial(phase: u32) -> Html {
                     {"Here it is. You will find the ticket with a unique ID in the Backlog. "}
                     {"But note that this is a "}<em>{"stub"}</em>{". "}
                     {"I mostly grabbed some quotes from the e-mail with the idea and wrote the use case story. "}
-                    {"Before we start working on it, we need to get more specific, "}
+                    {"Before we start working on it, we need to describe it in detail, "}
                     {"nail down the requirements and enumerate acceptance criteria. "}
                 </p>
                 <p>
@@ -245,7 +273,7 @@ fn tutorial(phase: u32) -> Html {
 
                 <p>
                     {"Once done, we can merge these changes or review them first. "}
-                    {"It might happen that you or your developers introduce bugs and whatnot. "}
+                    {"It might happen that you or your developers introduce bugs and whatnot. 😬"}
                 </p>
                 <p>
                     {"Move the task to the next stage, Under review, "}
@@ -369,11 +397,5 @@ fn tutorial(phase: u32) -> Html {
         _ => html! {},
     };
 
-    html! {
-        <>
-            <div class="tutorial-guy">
-            </div>
-            <div class="tutorial-body">{text_node}</div>
-        </>
-    }
+    text_node
 }

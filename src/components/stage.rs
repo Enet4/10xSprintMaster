@@ -141,14 +141,6 @@ impl Component for Stage {
             let data_transfer = DataTransfer::from_event(&ev);
 
             let data: TaskTransfer = data_transfer.get_data();
-            gloo_console::log!(
-                "Dropped task",
-                data.id,
-                "from",
-                data.from.to_str(),
-                "to",
-                id.to_str()
-            );
             Msg::DropTask(data)
         });
 

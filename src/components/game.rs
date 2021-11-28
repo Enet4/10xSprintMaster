@@ -35,6 +35,8 @@ pub enum GameStateOrigin {
 pub enum Msg {
     /// a request to close the modal, should resume game
     CloseModal,
+    /// hide the alert message
+    HideAlert,
     /// an event was received via the event bus
     Event(EventBusRequest),
     /// an event to be triggered after some milliseconds
@@ -69,6 +71,9 @@ pub struct Game {
     /// Whether to raise the humans a bit upwards
     /// so that they are easier to assign tasks to.
     bring_humans_up: bool,
+
+    /// The currently presented alert message.
+    alert_message: Option<String>,
 
     /// event dispatcher
     dispatch: Box<dyn Bridge<EventBus>>,
@@ -128,6 +133,7 @@ impl Component for Game {
             state,
             sound_enabled,
             bring_humans_up: false,
+            alert_message: None,
             reactor: EventReactor::new(),
             dispatch,
             watch,
@@ -143,7 +149,6 @@ impl Component for Game {
             Msg::SetGameSpeed(speed) => {
                 if Some(speed) != self.watch.current_speed() {
                     self.update_speed(speed);
-                    gloo_console::debug!("Game speed set to", speed.to_string());
                     true
                 } else {
                     false
@@ -164,6 +169,10 @@ impl Component for Game {
                 let tick_fn = move || link.send_message(Msg::Event(EventBusRequest::Tick));
                 self.watch.start_with(tick_fn);
 
+                true
+            }
+            Msg::HideAlert => {
+                self.alert_message = None;
                 true
             }
 
@@ -193,6 +202,12 @@ impl Component for Game {
                         // TODO show alert
 
                         gloo_console::warn!("alert:", msg);
+
+                        self.alert_message = Some(msg.to_string());
+
+                        let link = self.link.clone();
+                        Timeout::new(3_500, move || link.send_message(Msg::HideAlert)).forget();
+
                         true
                     }
                     EventOutcome::OpenMessage(msg) => {
@@ -249,9 +264,11 @@ impl Component for Game {
 
                 html! {
                     <Modal title={title.clone()}>
-                        <p>
-                            { message.clone() }
-                        </p>
+                        <div class="modal-body">
+                            <p>
+                                { message.clone() }
+                            </p>
+                        </div>
                         <button onclick=click_handler>{ "OK" }</button>
                     </Modal>
                 }
@@ -270,14 +287,14 @@ impl Component for Game {
                 let title = format!("End of Month {}", self.state.month);
                 html! {
                     <Modal title=title>
-                        {message.body()}
+                        <div class="modal-body">
+                            {message.body()}
+                        </div>
                         <button onclick=click_handler>{ "OK" }</button>
                     </Modal>
                 }
             }
             Some(message @ Message::Tutorial(phase)) => {
-                gloo_console::debug!("Presenting tutorial message ", *phase);
-
                 match phase {
                     // do not produce any modals
                     0 => {
@@ -293,7 +310,9 @@ impl Component for Game {
 
                         html! {
                             <Modal title="Onboarding">
-                                { message.body() }
+                                <div class="modal-body">
+                                    { message.body() }
+                                </div>
                                 <button onclick=click_handler>{ "OK" }</button>
                             </Modal>
                         }
@@ -322,7 +341,9 @@ impl Component for Game {
 
                         html! {
                             <Modal title="Onboarding">
-                                { message.body() }
+                                <div class="modal-body">
+                                    { message.body() }
+                                </div>
                                 <button onclick=click_handler>{ "OK" }</button>
                             </Modal>
                         }
@@ -351,7 +372,9 @@ impl Component for Game {
 
                         html! {
                             <Modal title="Onboarding">
-                                { message.body() }
+                                <div class="modal-body">
+                                    { message.body() }
+                                </div>
                                 <button onclick=click_handler>{ "OK" }</button>
                             </Modal>
                         }
@@ -381,7 +404,9 @@ impl Component for Game {
 
                         html! {
                             <Modal title="Onboarding">
-                                { message.body() }
+                                <div class="modal-body">
+                                    { message.body() }
+                                </div>
                                 <button onclick=click_handler>{ "OK" }</button>
                             </Modal>
                         }
@@ -397,7 +422,9 @@ impl Component for Game {
 
                         html! {
                             <Modal title="Onboarding">
-                                { message.body() }
+                                <div class="modal-body">
+                                    { message.body() }
+                                </div>
                                 <button onclick=click_handler>{ "OK" }</button>
                             </Modal>
                         }
@@ -510,7 +537,7 @@ impl Component for Game {
                     <div class="status-score">{self.state.total_score / 1_000}</div>
                     <Clock time=time />
                 </div>
-                <Board product_name=self.state.product_name.clone()>
+                <Board product_name=self.state.product_name.clone() alert_message=self.alert_message.clone()>
                     <Stage id=StageId::Backlog description="Backlog">
                         {backlog_tasks}
                     </Stage>

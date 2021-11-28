@@ -181,7 +181,6 @@ impl Component for Human {
             // (so that this drop zone knows what task was dropped)
             let data_transfer = DataTransfer::from_event(&ev);
             let data: TaskTransfer = data_transfer.get_data();
-            gloo_console::log!("Assign task", data.id, "to human", name.as_ref());
 
             // assign task to human
             Msg::Assign(data)

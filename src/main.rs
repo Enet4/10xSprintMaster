@@ -101,15 +101,11 @@ impl Component for App {
                 true
             }
             Msg::ProductNameInput(name) => {
-                gloo_console::debug!("Product name:", &name);
-
                 self.product_name = name;
                 true
             }
             Msg::ToggleOnboarding => {
                 self.onboarding = !self.onboarding;
-                gloo_console::debug!("Onboarding:", self.onboarding);
-
                 true
             }
             Msg::NewGame => {
