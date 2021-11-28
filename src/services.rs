@@ -202,8 +202,7 @@ impl EventReactor {
         let dist = rand_distr::Normal::new(score_linger_rate as f32, (total_score / 2_000) as f32)
             .unwrap_throw();
         let damage = dist.sample(&mut self.rng);
-        // !!! remove in prod
-        gloo_console::debug!("lingering score damage:", damage);
+        // gloo_console::debug!("lingering score damage:", damage);
 
         (damage as u32).clamp(0, total_score / 5)
     }
@@ -293,6 +292,7 @@ impl EventReactor {
             let n_fraction = 24;
             let b_fraction = bugs;
             let c_fraction = complexity / 2;
+            /*
             gloo_console::debug!(
                 "ingestion fractions - n: ",
                 n_fraction,
@@ -301,6 +301,7 @@ impl EventReactor {
                 " c:",
                 c_fraction
             );
+            */
             let d = n_fraction + b_fraction + c_fraction;
 
             let i: u32 = self.rng.gen_range(0..d);

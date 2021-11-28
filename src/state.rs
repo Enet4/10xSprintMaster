@@ -275,13 +275,7 @@ impl WorldState {
         self.score_linger_rate =
             ((self.bugs + self.complexity / 8) * LINGER_FACTOR).saturating_sub(50);
 
-        // !!! remove in prod
-        gloo_console::debug!(
-            "Complexity: ",
-            self.complexity,
-            "; Linger rate: ",
-            self.score_linger_rate
-        );
+        // gloo_console::debug!("Complexity: ", self.complexity, "; Linger rate: ", self.score_linger_rate);
     }
 
     pub fn month(&self) -> u32 {
@@ -549,8 +543,7 @@ impl WorldState {
                 if reactor.human_introduced_bug(human, task, self.complexity) {
                     task.bugs += 1;
 
-                    // !!! remove in prod
-                    gloo_console::debug!("Bug introduced in", format!("T{}", task.id));
+                    // gloo_console::debug!("Bug introduced in", format!("T{}", task.id));
                 }
 
                 if complete {
@@ -739,8 +732,6 @@ impl WorldState {
             if (self.time_in_month % TICKS_PER_SCORE_DAMAGE) == 0 {
                 // roll for score damage
                 let damage = reactor.score_damage(self.total_score, self.score_linger_rate);
-
-                gloo_console::debug!("Score damage to apply: ", damage);
 
                 self.score_in_month -= damage as i32;
                 self.total_score = self.total_score.saturating_sub(damage);
