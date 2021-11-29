@@ -732,8 +732,17 @@ impl WorldState {
                         .find(|human| human.id == human_id)
                         .unwrap();
                     human.quit = true;
+                    let human_name = human.name.clone();
+                    let human_id = human.id;
+                    // unassign tasks everywhere
+                    for t in self.all_tasks_iter_mut() {
+                        if t.assigned == Some(human_id) {
+                            t.assigned = None;
+                        }
+                    }
+
                     // report by name
-                    return EventOutcome::OpenMessage(Message::human_quit(human.name.clone()));
+                    return EventOutcome::OpenMessage(Message::human_quit(human_name));
                 }
                 None => {
                     // do nothing
