@@ -104,7 +104,18 @@ pub struct WorldState {
 
     /// The current tutorial phase, if currently in the tutorial.
     /// Starts at 0, the first message is given at 1.
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tutorial: Option<u32>,
+
+    /// Whether the CEO has already contacted you
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_false")]
+    pub ceo_message_delivered: bool,
+}
+
+fn is_false(x: &bool) -> bool {
+    !x
 }
 
 /// The outcome of a game event request.
@@ -181,9 +192,9 @@ impl WorldState {
             tasks_review: vec![],
             tasks_done: vec![],
             humans: vec![GameHuman::new(0, "You", "#fff", 50)],
-            // do not ingest tasks during tutorial
-            task_ingest_rate: if tutorial { 0 } else { 10 },
+            task_ingest_rate: 3,
             tutorial: if tutorial { Some(0) } else { None },
+            ceo_message_delivered: false,
         }
     }
 
@@ -799,11 +810,12 @@ impl WorldState {
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
 
         // identify win condition
-        if self.total_score >= CPO_SCORE_THRESHOLD && humans_count >= 6 {
+        if !self.ceo_message_delivered && self.total_score >= CPO_SCORE_THRESHOLD && humans_count >= 6 {
             // win condition met, ask if they want to be promoted
             let message = Message::Ceo {
                 product_name: self.product_name.clone(),
             };
+            self.ceo_message_delivered = true;
             return Some(EventOutcome::OpenMessage(message));
         }
 
@@ -986,5 +998,6 @@ fn dummy_state() -> WorldState {
             },
         ],
         tutorial: None,
+        ceo_message_delivered: false,
     }
 }
