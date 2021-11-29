@@ -224,7 +224,7 @@ impl Component for Human {
                     </div>
                 </div>
                 <div class="human-body"></div>
-                <div class="human-name" style=name_style>{ self.props.name.clone() }</div>
+                <div class="human-name" style=name_style>{ name }</div>
             </div>
         }
     }
