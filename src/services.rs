@@ -377,5 +377,5 @@ static HUMAN_NAMES: [&'static str; 16] = [
 
 static HUMAN_COLORS: [&'static str; 16] = [
     "#00d", "#dd0", "#c6c", "#0cc", "#0dd", "#ccc", "#d00", "#6c0", "#d0d", "#c0c", "#ddc", "#cdd",
-    "#c6c", "#3f7", "#c0c", "#f30",
+    "#f7f", "#3f7", "#f73", "#7f3",
 ];
