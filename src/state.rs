@@ -542,7 +542,7 @@ impl WorldState {
                 // do progress on task
                 let added_progress = 0.005
                     + (5 + human.experience) as f64
-                        / (task.difficulty * 70 + self.complexity * 62) as f64;
+                        / (task.difficulty * 70 + self.complexity * 60) as f64;
                 let complete = task.add_progress(added_progress);
                 human.status = HumanStatus::Coding;
 
