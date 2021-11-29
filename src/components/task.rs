@@ -22,16 +22,23 @@ pub struct GameTask {
     /// timestamp of moment to deliver the task
     /// (otherwise there's a penalty)
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub deadline: Option<Timestamp>,
     /// a description of the task
+    #[serde(default)]
+    #[serde(skip_serializing_if = "str::is_empty")]
     pub description: String,
     /// the kind of task
     pub kind: TaskKind,
     /// At which stage the task currently is.
     pub stage: StageId,
     /// the ID of the user assigned to the task
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub assigned: Option<u32>,
     /// the ID of the user who completed the development of the task
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub developed_by: Option<u32>,
     /// The task's score to be awarded when complete.
     ///

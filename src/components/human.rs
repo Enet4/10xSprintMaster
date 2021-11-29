@@ -27,8 +27,12 @@ pub struct GameHuman {
     /// the progress of the human at doing something
     pub progress: f32,
     /// whether the human quit the team and is not coming back
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_false")]
     pub quit: bool,
 }
+
+fn is_false(x: &bool) -> bool { !x }
 
 impl GameHuman {
     /// Create a new human.
