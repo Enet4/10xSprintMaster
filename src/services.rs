@@ -278,11 +278,11 @@ impl EventReactor {
 
         // inflate ingestion chance
         let num = match tasks_in_backlog {
-            0..=1 => num * 2,
-            2..=7 => num,
-            8..=12 => num / 2,
-            13..=20 => num / 4,
-            21..=29 => num / 8,
+            0..=2 => num * 2,
+            3..=9 => num,
+            10..=14 => num / 2,
+            15..=19 => num / 4,
+            20..=29 => num / 8,
             _ => return None,
         };
 
