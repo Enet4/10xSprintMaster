@@ -6,7 +6,6 @@
     margin-bottom: 10px;
     padding: 12px;
     min-height: 200px;
-    width: fit-content;
 }
 
 .board h3 {
@@ -16,6 +15,7 @@
 }
 
 .board-stage-header {
+    white-space: nowrap;
     border: 2px solid black;
     border-radius: 4px 4px 0px 0px;
     padding: 8px;
@@ -29,12 +29,12 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     margin: 4px 2px;
     padding: 4px 12px 8px 4px;
-    width: 160px;
+    width: 168px;
     background-color: #d4d4e0;
 }
 
 .board-stage-body {
-    height: 260px;
+    height: 280px;
     overflow-y: auto;
     padding: 3px;
 }
