@@ -224,12 +224,12 @@ impl EventReactor {
 
                 Some(GameEvent::BugReported(task))
             }
-            36..=99 => {
+            36..=89 => {
                 // someone quits due to project complexity
                 let human_count = state.humans.iter().filter(|h| !h.quit).count();
                 let complexity = state.complexity;
                 let pressure = complexity as u32 + human_count as u32 * 5;
-                if human_count > 1 && pressure >= 100 {
+                if human_count > 1 && pressure >= 116 {
                     // pick a random human to quit
                     let index = self.rng.gen_range(1..=human_count - 1);
                     let human = state.humans.iter().filter(|h| !h.quit).nth(index).unwrap();
