@@ -162,7 +162,7 @@ impl EventReactor {
         // that means we're fixing previous bugs,
         // so less chance of introducing new ones
         if task.bugs_found > 0 {
-            num /= 5
+            num /= 8
         };
 
         self.rng.gen_ratio(num.min(det) as u32, det)
@@ -279,6 +279,7 @@ impl EventReactor {
         // inflate ingestion chance
         let num = match tasks_in_backlog {
             0..=1 => num * 2,
+            2..=7 => num,
             8..=12 => num / 2,
             13..=20 => num / 4,
             21..=29 => num / 8,
