@@ -100,11 +100,14 @@ impl Component for Game {
                 onboarding,
             } => {
                 let state = WorldState::new(project_name.clone(), *onboarding);
-                state.save().expect_throw("could not save game");
+                state.save().unwrap_or_else(|e| {
+                    gloo_console::error!("Could not save game state:", e);
+                    gloo_console::error!("If you are reading this, try disabling adblockers and other shields.");
+                });
                 state
             }
             GameStateOrigin::Continue => WorldState::load_from_storage()
-                .expect_throw("could not load game :(")
+                .expect_throw("could not load game :( If you are reading this, try disabling adblockrs and other shields.")
                 .expect_throw("no save game!"),
             GameStateOrigin::Dummy => WorldState::dummy(),
         };
