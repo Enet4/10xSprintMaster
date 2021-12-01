@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.56"
 
 [[bin]]
-name = "10xprintmaster"
+name = "10xsprintmaster"
 path = "src/main.rs"
 
 [features]
