@@ -1,6 +1,6 @@
 use gloo_timers::callback::Timeout;
 use wasm_bindgen::prelude::Closure;
-use wasm_bindgen::{UnwrapThrowExt, JsCast};
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use yew::prelude::*;
 use yew::utils::document;
 
@@ -117,11 +117,10 @@ impl Component for Game {
             GameStateOrigin::Dummy => WorldState::dummy(),
         };
 
-        let sound_enabled =
-            crate::audio::is_enabled().unwrap_or_else(|e| {
-                gloo_console::error!("Could not load audio settings, audio disabled: ", e);
-                false
-            });
+        let sound_enabled = crate::audio::is_enabled().unwrap_or_else(|e| {
+            gloo_console::error!("Could not load audio settings, audio disabled: ", e);
+            false
+        });
 
         let mut watch = GameWatch::new();
 
@@ -151,13 +150,17 @@ impl Component for Game {
                 if e.key() == " " {
                     link.send_message(Msg::ToggleSpeed);
                 }
-            }) as Box<dyn  FnMut(_)>).into_js_value();
+            }) as Box<dyn FnMut(_)>)
+            .into_js_value();
 
-            document().add_event_listener_with_callback(
-                "keydown", closure.as_ref().unchecked_ref::<js_sys::Function>()
-            ).unwrap_or_else(|e| {
-                gloo_console::error!("Could not add keydown listener for audio toggling:", e);
-            });
+            document()
+                .add_event_listener_with_callback(
+                    "keydown",
+                    closure.as_ref().unchecked_ref::<js_sys::Function>(),
+                )
+                .unwrap_or_else(|e| {
+                    gloo_console::error!("Could not add keydown listener for audio toggling:", e);
+                });
         }
 
         Self {
@@ -198,21 +201,19 @@ impl Component for Game {
                     true
                 }
             }
-            Msg::ToggleSound => {
-                match crate::audio::set_audio(!self.sound_enabled) {
-                    Ok(()) => {
-                        self.sound_enabled = !self.sound_enabled;
-                        if self.sound_enabled {
-                            play_zipclick();
-                        }
-                        true
+            Msg::ToggleSound => match crate::audio::set_audio(!self.sound_enabled) {
+                Ok(()) => {
+                    self.sound_enabled = !self.sound_enabled;
+                    if self.sound_enabled {
+                        play_zipclick();
                     }
-                    Err(e) => {
-                        gloo_console::error!("Could not save audio settings: ", e);
-                        false
-                    }
+                    true
                 }
-            }
+                Err(e) => {
+                    gloo_console::error!("Could not save audio settings: ", e);
+                    false
+                }
+            },
             Msg::CloseModal => {
                 self.modal = None;
                 // resume game

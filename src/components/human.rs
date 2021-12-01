@@ -32,7 +32,9 @@ pub struct GameHuman {
     pub quit: bool,
 }
 
-fn is_false(x: &bool) -> bool { !x }
+fn is_false(x: &bool) -> bool {
+    !x
+}
 
 impl GameHuman {
     /// Create a new human.

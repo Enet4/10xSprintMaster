@@ -597,7 +597,8 @@ impl WorldState {
             let you = self.humans.get_mut(0).unwrap_throw();
 
             // do writing progress on task
-            let added_progress = (1 + you.experience) as f64 / (task.difficulty * 128 + self.complexity * 12) as f64;
+            let added_progress =
+                (1 + you.experience) as f64 / (task.difficulty * 128 + self.complexity * 12) as f64;
             let complete = task.add_progress(added_progress);
             you.status = HumanStatus::Writing;
 
@@ -819,7 +820,10 @@ impl WorldState {
         let humans_count = self.humans.iter().filter(|h| !h.quit).count();
 
         // identify win condition
-        if !self.ceo_message_delivered && self.total_score >= CPO_SCORE_THRESHOLD && humans_count >= 6 {
+        if !self.ceo_message_delivered
+            && self.total_score >= CPO_SCORE_THRESHOLD
+            && humans_count >= 6
+        {
             // win condition met, ask if they want to be promoted
             let message = Message::Ceo {
                 product_name: self.product_name.clone(),
