@@ -164,13 +164,19 @@ impl Component for Game {
                 }
             }
             Msg::ToggleSound => {
-                self.sound_enabled = !self.sound_enabled;
-                crate::audio::set_audio(self.sound_enabled)
-                    .expect_throw("Could not save audio settings");
-                if self.sound_enabled {
-                    play_zipclick();
+                match crate::audio::set_audio(!self.sound_enabled) {
+                    Ok(()) => {
+                        self.sound_enabled = !self.sound_enabled;
+                        if self.sound_enabled {
+                            play_zipclick();
+                        }
+                        true
+                    }
+                    Err(e) => {
+                        gloo_console::error!("Could not save audio settings: ", e);
+                        false
+                    }
                 }
-                true
             }
             Msg::CloseModal => {
                 self.modal = None;
