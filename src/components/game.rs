@@ -102,18 +102,21 @@ impl Component for Game {
                 let state = WorldState::new(project_name.clone(), *onboarding);
                 state.save().unwrap_or_else(|e| {
                     gloo_console::error!("Could not save game state:", e);
-                    gloo_console::error!("If you are reading this, try disabling adblockers and other shields.");
+                    gloo_console::error!("If you are reading this, try disabling adblockers and other browser shields.");
                 });
                 state
             }
             GameStateOrigin::Continue => WorldState::load_from_storage()
-                .expect_throw("could not load game :( If you are reading this, try disabling adblockrs and other shields.")
-                .expect_throw("no save game!"),
+                .expect_throw("Could not load game :( If you are reading this, try disabling adblockers and other shields.")
+                .expect_throw("No save game! This is a bug, please inform author."),
             GameStateOrigin::Dummy => WorldState::dummy(),
         };
 
         let sound_enabled =
-            crate::audio::is_enabled().expect_throw("Could not load audio settings");
+            crate::audio::is_enabled().unwrap_or_else(|e| {
+                gloo_console::error!("Could not load audio settings, audio disabled: ", e);
+                false
+            });
 
         let mut watch = GameWatch::new();
 
