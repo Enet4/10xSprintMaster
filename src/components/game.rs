@@ -1,6 +1,8 @@
 use gloo_timers::callback::Timeout;
-use wasm_bindgen::UnwrapThrowExt;
+use wasm_bindgen::prelude::Closure;
+use wasm_bindgen::{UnwrapThrowExt, JsCast};
 use yew::prelude::*;
+use yew::utils::document;
 
 use crate::audio::{play_endofmonth, play_zipclick};
 use crate::components::stage::StageId;
@@ -52,6 +54,9 @@ pub enum Msg {
     SetGameSpeed(GameSpeed),
     /// enable or disable sound
     ToggleSound,
+    /// either pause or set speed to normal
+    /// depending on current state
+    ToggleSpeed,
 }
 
 pub struct Game {
@@ -135,6 +140,26 @@ impl Component for Game {
             Timeout::new(700, tutorial_fn).forget();
         }
 
+        // add keydown listener to document for sound toggling
+        {
+            let link = link.clone();
+            let closure = Closure::wrap(Box::new(move |e: KeyboardEvent| {
+                {
+                    let ev: &Event = e.as_ref();
+                    ev.prevent_default();
+                }
+                if e.key() == " " {
+                    link.send_message(Msg::ToggleSpeed);
+                }
+            }) as Box<dyn  FnMut(_)>).into_js_value();
+
+            document().add_event_listener_with_callback(
+                "keydown", closure.as_ref().unchecked_ref::<js_sys::Function>()
+            ).unwrap_or_else(|e| {
+                gloo_console::error!("Could not add keydown listener for audio toggling:", e);
+            });
+        }
+
         Self {
             link,
             props,
@@ -161,6 +186,16 @@ impl Component for Game {
                     true
                 } else {
                     false
+                }
+            }
+            Msg::ToggleSpeed => {
+                play_zipclick();
+                if let Some(_) = self.watch.current_speed() {
+                    self.watch.pause();
+                    true
+                } else {
+                    self.update_speed(GameSpeed::Normal);
+                    true
                 }
             }
             Msg::ToggleSound => {
