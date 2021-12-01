@@ -224,8 +224,6 @@ impl Component for Game {
                     EventOutcome::Update => true,
                     EventOutcome::Alert(msg) => {
                         // show alert in board
-                        gloo_console::warn!("alert:", msg);
-
                         self.alert_message = Some(msg.to_string());
 
                         let link = self.link.clone();
