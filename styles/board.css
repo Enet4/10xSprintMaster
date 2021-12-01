@@ -12,6 +12,7 @@
     font-size: 1.25rem;
     font-weight: bold;
     margin: 0px 8px 2px 8px;
+    user-select: none;
 }
 
 .board-stage-header {
@@ -20,6 +21,7 @@
     border-radius: 4px 4px 0px 0px;
     padding: 8px;
     margin: -4px -12px 0px -4px;
+    user-select: none;
 }
 
 .board-stage {
@@ -70,6 +72,7 @@
     transition-property: all;
     transition-duration: 50ms;
     transition-timing-function: linear;
+    user-select: none;
 }
 
 .board-task-important {
