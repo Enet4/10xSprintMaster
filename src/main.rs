@@ -187,7 +187,7 @@ impl Component for App {
                     <Modal title="New Game">
                         <form onsubmit=submit_handler>
                             <p>{ "Enter the name of your product:" }</p>
-                            <input type="text" class="product-name-input" placeholder="Product name" oninput=input_handler />
+                            <input type="text" class="product-name-input" maxlength=44 placeholder="Product name" oninput=input_handler />
 
                             <p>
                             <span>
