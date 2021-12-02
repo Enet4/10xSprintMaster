@@ -2,6 +2,8 @@
 
 Become a software development lead engineer in this simulator game!
 
+[![10x Sprint Master on itch.io](https://img.itch.zone/aW1nLzc1MzczNzMucG5n/315x250%23c/YgKVU0.png)](https://e-net4.itch.io/10x-sprint-master)
+
 ## Technical information
 
 This game was developed in HTML, CSS, and Rust,
